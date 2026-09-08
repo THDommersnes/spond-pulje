@@ -2,6 +2,8 @@
 alert("script.js ble lastet!");
 console.log("XLSX er:", XLSX);
 
+let players = []; // lagrer navn + valgt gruppe
+
 document.getElementById('importButton').addEventListener('click', () => {
   const input = document.getElementById('fileInput');
   const file = input.files?.[0];
@@ -17,6 +19,7 @@ document.getElementById('importButton').addEventListener('click', () => {
     const data = new Uint8Array(e.target.result);
     const workbook = XLSX.read(data, { type: 'array' });
 
+    // LESER SHEET 2 (For import)
     const sheetName = workbook.SheetNames[1];
     const sheet = workbook.Sheets[sheetName];
 
@@ -35,6 +38,7 @@ document.getElementById('importButton').addEventListener('click', () => {
 
     const playerList = document.getElementById('playerList');
     playerList.innerHTML = "";
+    players = [];
 
     tableRows.forEach(row => {
       const status = (row[0] || "").toString().trim().toLowerCase();
@@ -57,6 +61,15 @@ document.getElementById('importButton').addEventListener('click', () => {
 
         select.value = "Gr3";
 
+        // lagre spiller i array
+        players.push({ name, level: "Gr3", select });
+
+        // oppdater level når bruker endrer
+        select.addEventListener("change", () => {
+          const p = players.find(x => x.name === name);
+          p.level = select.value;
+        });
+
         li.appendChild(nameSpan);
         li.appendChild(select);
 
@@ -66,4 +79,20 @@ document.getElementById('importButton').addEventListener('click', () => {
   };
 
   reader.readAsArrayBuffer(file);
+});
+
+
+// ⭐ GENERER GRUPPER
+document.getElementById("generateGroupsButton").addEventListener("click", () => {
+  const gr1 = players.filter(p => p.level === "Gr1").map(p => p.name);
+  const gr2 = players.filter(p => p.level === "Gr2").map(p => p.name);
+  const gr3 = players.filter(p => p.level === "Gr3").map(p => p.name);
+
+  let output = "Puljer:\n\n";
+
+  output += "Gr1:\n" + gr1.join("\n") + "\n\n";
+  output += "Gr2:\n" + gr2.join("\n") + "\n\n";
+  output += "Gr3:\n" + gr3.join("\n") + "\n\n";
+
+  alert(output);
 });
