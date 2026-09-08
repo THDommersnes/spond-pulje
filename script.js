@@ -1,7 +1,7 @@
 alert("script.js ble lastet!");
 console.log("XLSX er:", XLSX);
 
-let players = []; // lagrer navn + valgt gruppe
+let players = [];
 
 document.getElementById('importButton').addEventListener('click', () => {
   const input = document.getElementById('fileInput');
@@ -18,7 +18,7 @@ document.getElementById('importButton').addEventListener('click', () => {
     const data = new Uint8Array(e.target.result);
     const workbook = XLSX.read(data, { type: 'array' });
 
-    // ⭐ RIKTIG: Spond-tabellen ligger i første ark
+    // Bruk alltid første ark
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
 
@@ -26,25 +26,31 @@ document.getElementById('importButton').addEventListener('click', () => {
 
     console.log("Alle rader:", rows);
 
-    // Finn første rad som starter tabellen
-    let startIndex = rows.findIndex(r => 
-      r[0] === "Status" && r[1] === "Navn"
+    // Finn raden som inneholder kolonnene
+    let headerIndex = rows.findIndex(r =>
+      r.some(cell => (cell + "").trim().toLowerCase() === "status") &&
+      r.some(cell => (cell + "").trim().toLowerCase() === "navn")
     );
 
-    if (startIndex === -1) {
-      alert("Fant ikke tabellen i filen.");
+    if (headerIndex === -1) {
+      alert("Fant ikke kolonnene 'Status' og 'Navn' i filen.");
       return;
     }
 
-    const tableRows = rows.slice(startIndex + 1);
+    const headerRow = rows[headerIndex];
+
+    const statusCol = headerRow.findIndex(c => (c + "").trim().toLowerCase() === "status");
+    const nameCol = headerRow.findIndex(c => (c + "").trim().toLowerCase() === "navn");
+
+    const tableRows = rows.slice(headerIndex + 1);
 
     const playerList = document.getElementById('playerList');
     playerList.innerHTML = "";
     players = [];
 
     tableRows.forEach(row => {
-      const status = (row[0] || "").toString().trim().toLowerCase();
-      const name = (row[1] || "").toString().trim();
+      const status = (row[statusCol] || "").toString().trim().toLowerCase();
+      const name = (row[nameCol] || "").toString().trim();
 
       if (status === "kommer" && name !== "") {
 
@@ -81,8 +87,6 @@ document.getElementById('importButton').addEventListener('click', () => {
   reader.readAsArrayBuffer(file);
 });
 
-
-// ⭐ GENERER GRUPPER
 document.getElementById("generateGroupsButton").addEventListener("click", () => {
   const gr1 = players.filter(p => p.level === "Gr1").map(p => p.name);
   const gr2 = players.filter(p => p.level === "Gr2").map(p => p.name);
