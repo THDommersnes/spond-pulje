@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <title>Spond puljegenerator</title>
+
+  <!-- Excel-bibliotek (SheetJS) -->
+  <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    #playerList li {
+      margin: 4px 0;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Spond puljegenerator</h1>
+
+  <input type="file" id="fileInput" accept=".xlsx,.xls" />
+  <button id="importButton">Importer Spond-fil</button>
+
+  <h2>Spillere</h2>
+  <ul id="playerList"></ul>
+
+  <!-- VIKTIG: script.js må ligge i samme mappe -->
+  <script src="script.js"></script>
+</body>
+</html>
