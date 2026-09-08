@@ -4,92 +4,96 @@ console.log("XLSX er:", XLSX);
 let players = [];
 
 document.getElementById('importButton').addEventListener('click', () => {
-  const input = document.getElementById('fileInput');
-  const file = input.files?.[0];
+  const files = Array.from(document.getElementById('fileInput').files);
 
-  if (!file) {
-    alert('Velg en Spond-fil først');
+  if (files.length === 0) {
+    console.warn("Ingen filer valgt");
     return;
   }
 
-  const reader = new FileReader();
+  players = [];
+  const playerList = document.getElementById('playerList');
+  playerList.innerHTML = "";
 
-  reader.onload = function(e) {
-    const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, { type: 'array' });
+  files.forEach(file => {
+    const reader = new FileReader();
 
-    // ⭐ RIKTIG: Spond-tabellen ligger på ark 1
-    const sheetName = workbook.SheetNames[1];
-    const sheet = workbook.Sheets[sheetName];
+    reader.onload = function(e) {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
 
-    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+      // Bruker sheet 1 (For import)
+      const sheetName = workbook.SheetNames[1];
+      const sheet = workbook.Sheets[sheetName];
 
-    console.log("Alle rader:", rows);
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-    // Finn header-raden
-    let headerIndex = rows.findIndex(r =>
-      r.some(cell => (cell + "").trim().toLowerCase() === "status") &&
-      r.some(cell => (cell + "").trim().toLowerCase() === "navn")
-    );
+      console.log("Alle rader:", rows);
 
-    if (headerIndex === -1) {
-      alert("Fant ikke kolonnene 'Status' og 'Navn' i filen.");
-      return;
-    }
+      // Finn header-raden
+      let headerIndex = rows.findIndex(r =>
+        r.some(cell => (cell + "").trim().toLowerCase() === "status") &&
+        r.some(cell => (cell + "").trim().toLowerCase() === "navn")
+      );
 
-    const headerRow = rows[headerIndex];
-
-    const statusCol = headerRow.findIndex(c =>
-      (c + "").trim().toLowerCase() === "status"
-    );
-
-    const nameCol = headerRow.findIndex(c =>
-      (c + "").trim().toLowerCase() === "navn"
-    );
-
-    const tableRows = rows.slice(headerIndex + 1);
-
-    const playerList = document.getElementById('playerList');
-    playerList.innerHTML = "";
-    players = [];
-
-    tableRows.forEach(row => {
-      const status = (row[statusCol] || "").toString().trim().toLowerCase();
-      const name = (row[nameCol] || "").toString().trim();
-
-      if (status === "kommer" && name !== "") {
-
-        const li = document.createElement("li");
-
-        const nameSpan = document.createElement("span");
-        nameSpan.textContent = name + " ";
-
-        const select = document.createElement("select");
-        ["Gr1", "Gr2", "Gr3"].forEach(level => {
-          const option = document.createElement("option");
-          option.value = level;
-          option.textContent = level;
-          select.appendChild(option);
-        });
-
-        select.value = "Gr3";
-
-        players.push({ name, level: "Gr3", select });
-
-        select.addEventListener("change", () => {
-          const p = players.find(x => x.name === name);
-          p.level = select.value;
-        });
-
-        li.appendChild(nameSpan);
-        li.appendChild(select);
-
-        playerList.appendChild(li);
+      if (headerIndex === -1) {
+        console.warn("Fant ikke kolonnene 'Status' og 'Navn' i filen.");
+        return;
       }
-    });
-  };
 
-  reader.readAsArrayBuffer(file);
+      const headerRow = rows[headerIndex];
+
+      const statusCol = headerRow.findIndex(c =>
+        (c + "").trim().toLowerCase() === "status"
+      );
+
+      const nameCol = headerRow.findIndex(c =>
+        (c + "").trim().toLowerCase() === "navn"
+      );
+
+      const tableRows = rows.slice(headerIndex + 1);
+
+      tableRows.forEach(row => {
+        const status = (row[statusCol] || "").toString().trim().toLowerCase();
+        const name = (row[nameCol] || "").toString().trim();
+
+        if (status === "kommer" && name !== "") {
+
+          // Unngå duplikater hvis samme spiller finnes i begge filer
+          if (players.some(p => p.name === name)) return;
+
+          const li = document.createElement("li");
+
+          const nameSpan = document.createElement("span");
+          nameSpan.textContent = name + " ";
+
+          const select = document.createElement("select");
+          ["Gr1", "Gr2", "Gr3"].forEach(level => {
+            const option = document.createElement("option");
+            option.value = level;
+            option.textContent = level;
+            select.appendChild(option);
+          });
+
+          select.value = "Gr3";
+
+          players.push({ name, level: "Gr3", select });
+
+          select.addEventListener("change", () => {
+            const p = players.find(x => x.name === name);
+            p.level = select.value;
+          });
+
+          li.appendChild(nameSpan);
+          li.appendChild(select);
+
+          playerList.appendChild(li);
+        }
+      });
+    };
+
+    reader.readAsArrayBuffer(file);
+  });
 });
 
 document.getElementById("generateGroupsButton").addEventListener("click", () => {
