@@ -18,7 +18,8 @@ document.getElementById('importButton').addEventListener('click', () => {
     const data = new Uint8Array(e.target.result);
     const workbook = XLSX.read(data, { type: 'array' });
 
-    const sheetName = workbook.SheetNames[0];
+    // ⭐ RIKTIG: Spond-tabellen ligger på ark 1
+    const sheetName = workbook.SheetNames[1];
     const sheet = workbook.Sheets[sheetName];
 
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
@@ -27,25 +28,23 @@ document.getElementById('importButton').addEventListener('click', () => {
 
     // Finn header-raden
     let headerIndex = rows.findIndex(r =>
-      r.some(cell => (cell + "").trim().toLowerCase().includes("status")) &&
-      r.some(cell => (cell + "").trim().toLowerCase().includes("navn"))
+      r.some(cell => (cell + "").trim().toLowerCase() === "status") &&
+      r.some(cell => (cell + "").trim().toLowerCase() === "navn")
     );
 
     if (headerIndex === -1) {
-      alert("Fant ikke kolonnene 'Status'/'Deltakerstatus' og 'Navn'/'Fullt navn' i filen.");
+      alert("Fant ikke kolonnene 'Status' og 'Navn' i filen.");
       return;
     }
 
     const headerRow = rows[headerIndex];
 
-    // Finn kolonne for status
     const statusCol = headerRow.findIndex(c =>
-      (c + "").trim().toLowerCase().includes("status")
+      (c + "").trim().toLowerCase() === "status"
     );
 
-    // Finn kolonne for navn
     const nameCol = headerRow.findIndex(c =>
-      (c + "").trim().toLowerCase().includes("navn")
+      (c + "").trim().toLowerCase() === "navn"
     );
 
     const tableRows = rows.slice(headerIndex + 1);
