@@ -1,5 +1,6 @@
 alert("script.js ble lastet!");
 console.log("XLSX er:", XLSX);
+
 document.getElementById('importButton').addEventListener('click', () => {
   const input = document.getElementById('fileInput');
   const file = input.files?.[0];
@@ -15,16 +16,32 @@ document.getElementById('importButton').addEventListener('click', () => {
     const data = new Uint8Array(e.target.result);
     const workbook = XLSX.read(data, { type: 'array' });
 
-    const sheetName = workbook.SheetNames[0];
+    // LESER SHEET 2 (For import)
+    const sheetName = workbook.SheetNames[1];
     const sheet = workbook.Sheets[sheetName];
 
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
+    console.log("Alle rader:", rows);
+
+    // Finn første rad som starter tabellen
+    let startIndex = rows.findIndex(r => 
+      r[0] === "Status" && r[1] === "Navn"
+    );
+
+    if (startIndex === -1) {
+      alert("Fant ikke tabellen i filen.");
+      return;
+    }
+
+    const tableRows = rows.slice(startIndex + 1);
+
     const playerList = document.getElementById('playerList');
     playerList.innerHTML = "";
 
-    rows.slice(1).forEach(row => {
-      console.log(row);
+    tableRows.forEach(row => {
+      const status = (row[0] || "").toString().trim().toLowerCase();
+      const name = (row[1] || "").toString().trim();
 
       if (status === "kommer" && name !== "") {
         const li = document.createElement("li");
