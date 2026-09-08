@@ -1,3 +1,4 @@
+// rebuild
 alert("script.js ble lastet!");
 console.log("XLSX er:", XLSX);
 
@@ -20,6 +21,7 @@ document.getElementById('importButton').addEventListener('click', () => {
 
     // ⭐ RIKTIG: Spond-tabellen ligger på ark 1
     const sheetName = workbook.SheetNames[1];
+    alert("Leser fra ark: " + sheetName);
     const sheet = workbook.Sheets[sheetName];
 
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
