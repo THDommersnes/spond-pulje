@@ -18,8 +18,8 @@ document.getElementById('importButton').addEventListener('click', () => {
     const data = new Uint8Array(e.target.result);
     const workbook = XLSX.read(data, { type: 'array' });
 
-    // LESER SHEET 2 (For import)
-    const sheetName = workbook.SheetNames[1];
+    // ⭐ RIKTIG: Spond-tabellen ligger i første ark
+    const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
 
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
