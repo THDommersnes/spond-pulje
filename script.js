@@ -16,32 +16,23 @@ document.getElementById('importButton').addEventListener('click', () => {
 
   reader.onload = function(e) {
     const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: 'array' });
 
-    let workbook;
-    try {
-      workbook = XLSX.read(data, { type: 'array' });
-    } catch (err) {
-      alert("Feil ved lesing av Excel-fil");
-      console.error(err);
-      return;
-    }
-
-    // Spond-eksport har vanligvis sheet 1 som tabellen
-    const sheetName = workbook.SheetNames[0];
+    // LESER SHEET 2 (For import)
+    const sheetName = workbook.SheetNames[1];
     const sheet = workbook.Sheets[sheetName];
 
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
     console.log("Alle rader:", rows);
 
-    // Finn rad med "Status" og "Navn"
-    let startIndex = rows.findIndex(r =>
-      (r[0] + "").trim().toLowerCase() === "status" &&
-      (r[1] + "").trim().toLowerCase() === "navn"
+    // Finn første rad som starter tabellen
+    let startIndex = rows.findIndex(r => 
+      r[0] === "Status" && r[1] === "Navn"
     );
 
     if (startIndex === -1) {
-      alert("Fant ikke kolonnene 'Status' og 'Navn' i filen.");
+      alert("Fant ikke tabellen i filen.");
       return;
     }
 
