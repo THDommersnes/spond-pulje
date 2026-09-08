@@ -24,8 +24,7 @@ document.getElementById('importButton').addEventListener('click', () => {
     playerList.innerHTML = "";
 
     rows.slice(1).forEach(row => {
-      const status = (row[0] || "").toString().trim().toLowerCase();
-      const name = (row[1] || "").toString().trim();
+      console.log(row);
 
       if (status === "kommer" && name !== "") {
         const li = document.createElement("li");
