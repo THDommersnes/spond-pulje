@@ -1,3 +1,4 @@
+// rebuild
 alert("script.js ble lastet!");
 console.log("XLSX er:", XLSX);
 
