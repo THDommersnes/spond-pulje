@@ -1,77 +1,37 @@
-alert("script.js ble lastet!");
-console.log("XLSX er:", XLSX);
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <title>Spond puljegenerator</title>
 
-document.getElementById('importButton').addEventListener('click', () => {
-  const input = document.getElementById('fileInput');
-  const file = input.files?.[0];
+  <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-  if (!file) {
-    alert('Velg en Spond-fil først');
-    return;
-  }
-
-  const reader = new FileReader();
-
-  reader.onload = function(e) {
-    const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, { type: 'array' });
-
-    // LESER SHEET 2 (For import)
-    const sheetName = workbook.SheetNames[1];
-    const sheet = workbook.Sheets[sheetName];
-
-    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-    console.log("Alle rader:", rows);
-
-    // Finn første rad som starter tabellen
-    let startIndex = rows.findIndex(r => 
-      r[0] === "Status" && r[1] === "Navn"
-    );
-
-    if (startIndex === -1) {
-      alert("Fant ikke tabellen i filen.");
-      return;
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
     }
+    h1 {
+      margin-bottom: 20px;
+    }
+    #playerList li {
+      margin: 4px 0;
+    }
+    select {
+      margin-left: 10px;
+    }
+  </style>
+</head>
 
-    const tableRows = rows.slice(startIndex + 1);
+<body>
+  <h1>Spond puljegenerator</h1>
 
-    const playerList = document.getElementById('playerList');
-    playerList.innerHTML = "";
+  <input type="file" id="fileInput" accept=".xlsx,.xls" />
+  <button id="importButton">Importer Spond-fil</button>
 
-    tableRows.forEach(row => {
-      const status = (row[0] || "").toString().trim().toLowerCase();
-      const name = (row[1] || "").toString().trim();
+  <h2>Spillere</h2>
+  <ul id="playerList"></ul>
 
-      if (status === "kommer" && name !== "") {
-
-        // Lag <li>
-        const li = document.createElement("li");
-
-        // Navn
-        const nameSpan = document.createElement("span");
-        nameSpan.textContent = name + " ";
-
-        // Dropdown for Gr1/Gr2/Gr3
-        const select = document.createElement("select");
-        ["Gr1", "Gr2", "Gr3"].forEach(level => {
-          const option = document.createElement("option");
-          option.value = level;
-          option.textContent = level;
-          select.appendChild(option);
-        });
-
-        // Sett default til Gr3
-        select.value = "Gr3";
-
-        // Legg alt inn i <li>
-        li.appendChild(nameSpan);
-        li.appendChild(select);
-
-        playerList.appendChild(li);
-      }
-    });
-  };
-
-  reader.readAsArrayBuffer(file);
-});
+  <script src="script.js"></script>
+</body>
+</html>
