@@ -18,7 +18,6 @@ document.getElementById('importButton').addEventListener('click', () => {
     const data = new Uint8Array(e.target.result);
     const workbook = XLSX.read(data, { type: 'array' });
 
-    // Bruk alltid første ark
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
 
@@ -26,21 +25,28 @@ document.getElementById('importButton').addEventListener('click', () => {
 
     console.log("Alle rader:", rows);
 
-    // Finn raden som inneholder kolonnene
+    // Finn header-raden
     let headerIndex = rows.findIndex(r =>
-      r.some(cell => (cell + "").trim().toLowerCase() === "status") &&
-      r.some(cell => (cell + "").trim().toLowerCase() === "navn")
+      r.some(cell => (cell + "").trim().toLowerCase().includes("status")) &&
+      r.some(cell => (cell + "").trim().toLowerCase().includes("navn"))
     );
 
     if (headerIndex === -1) {
-      alert("Fant ikke kolonnene 'Status' og 'Navn' i filen.");
+      alert("Fant ikke kolonnene 'Status'/'Deltakerstatus' og 'Navn'/'Fullt navn' i filen.");
       return;
     }
 
     const headerRow = rows[headerIndex];
 
-    const statusCol = headerRow.findIndex(c => (c + "").trim().toLowerCase() === "status");
-    const nameCol = headerRow.findIndex(c => (c + "").trim().toLowerCase() === "navn");
+    // Finn kolonne for status
+    const statusCol = headerRow.findIndex(c =>
+      (c + "").trim().toLowerCase().includes("status")
+    );
+
+    // Finn kolonne for navn
+    const nameCol = headerRow.findIndex(c =>
+      (c + "").trim().toLowerCase().includes("navn")
+    );
 
     const tableRows = rows.slice(headerIndex + 1);
 
