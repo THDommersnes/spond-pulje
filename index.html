@@ -5,21 +5,55 @@
   <meta charset="UTF-8" />
   <title>Spond puljegenerator</title>
 
+  <!-- Viktig for mobil -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Excel-bibliotek -->
   <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 40px;
+      margin: 20px;
+      font-size: 18px; /* større tekst */
     }
+
     h1 {
       margin-bottom: 20px;
+      font-size: 28px;
     }
+
+    h2 {
+      font-size: 22px;
+      margin-top: 25px;
+    }
+
     #playerList li {
-      margin: 4px 0;
+      margin: 12px 0;
+      font-size: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
     }
+
     select {
-      margin-left: 10px;
+      font-size: 18px;
+      padding: 8px;
+      border-radius: 6px;
+    }
+
+    button {
+      font-size: 20px;
+      padding: 12px 18px;
+      margin-top: 15px;
+      width: 100%; /* full bredde på mobil */
+      border-radius: 8px;
+    }
+
+    input[type="file"] {
+      font-size: 18px;
+      margin-bottom: 10px;
     }
   </style>
 </head>
