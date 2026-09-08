@@ -1,7 +1,7 @@
 alert("script.js ble lastet!");
 console.log("XLSX er:", XLSX);
 
-let players = []; // lagrer navn + nivå
+let players = []; // lagrer navn + valgt gruppe
 
 document.getElementById('importButton').addEventListener('click', () => {
   const input = document.getElementById('fileInput');
@@ -18,11 +18,15 @@ document.getElementById('importButton').addEventListener('click', () => {
     const data = new Uint8Array(e.target.result);
     const workbook = XLSX.read(data, { type: 'array' });
 
+    // LESER SHEET 2 (For import)
     const sheetName = workbook.SheetNames[1];
     const sheet = workbook.Sheets[sheetName];
 
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
+    console.log("Alle rader:", rows);
+
+    // Finn første rad som starter tabellen
     let startIndex = rows.findIndex(r => 
       r[0] === "Status" && r[1] === "Navn"
     );
@@ -44,17 +48,31 @@ document.getElementById('importButton').addEventListener('click', () => {
 
       if (status === "kommer" && name !== "") {
 
-        // Sett nivå manuelt her:
-        let level = "Gr3"; // default
-
-        // Eksempel: du kan legge inn regler her:
-        if (name.includes("Tobias")) level = "Gr1";
-        if (name.includes("Helland")) level = "Gr2";
-
-        players.push({ name, level });
-
         const li = document.createElement("li");
-        li.textContent = `${name} (${level})`;
+
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = name + " ";
+
+        const select = document.createElement("select");
+        ["Gr1", "Gr2", "Gr3"].forEach(level => {
+          const option = document.createElement("option");
+          option.value = level;
+          option.textContent = level;
+          select.appendChild(option);
+        });
+
+        select.value = "Gr3";
+
+        players.push({ name, level: "Gr3", select });
+
+        select.addEventListener("change", () => {
+          const p = players.find(x => x.name === name);
+          p.level = select.value;
+        });
+
+        li.appendChild(nameSpan);
+        li.appendChild(select);
+
         playerList.appendChild(li);
       }
     });
@@ -64,7 +82,7 @@ document.getElementById('importButton').addEventListener('click', () => {
 });
 
 
-// ⭐ GENERER GRUPPER (superenkel)
+// ⭐ GENERER GRUPPER
 document.getElementById("generateGroupsButton").addEventListener("click", () => {
   const gr1 = players.filter(p => p.level === "Gr1").map(p => p.name);
   const gr2 = players.filter(p => p.level === "Gr2").map(p => p.name);
