@@ -5,17 +5,15 @@
   <meta charset="UTF-8" />
   <title>Spond puljegenerator</title>
 
-  <!-- Viktig for mobil -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- Excel-bibliotek -->
   <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
-      font-size: 18px; /* større tekst */
+      font-size: 18px;
     }
 
     h1 {
@@ -47,13 +45,25 @@
       font-size: 20px;
       padding: 12px 18px;
       margin-top: 15px;
-      width: 100%; /* full bredde på mobil */
+      width: 100%;
       border-radius: 8px;
     }
 
     input[type="file"] {
       font-size: 18px;
       margin-bottom: 10px;
+    }
+
+    .group-box {
+      background: #f3f3f3;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .group-box ul {
+      margin-top: 10px;
+      padding-left: 20px;
     }
   </style>
 </head>
@@ -68,6 +78,27 @@
   <ul id="playerList"></ul>
 
   <button id="generateGroupsButton">Generer grupper</button>
+
+  <!-- ⭐ Seksjoner for grupper -->
+  <div class="group-box">
+    <h2>Gr1</h2>
+    <ul id="gr1List"></ul>
+  </div>
+
+  <div class="group-box">
+    <h2>Gr2</h2>
+    <ul id="gr2List"></ul>
+  </div>
+
+  <div class="group-box">
+    <h2>Gr3</h2>
+    <ul id="gr3List"></ul>
+  </div>
+
+  <div class="group-box">
+    <h2>Keeper</h2>
+    <ul id="keeperList"></ul>
+  </div>
 
   <script src="script.js"></script>
 </body>
