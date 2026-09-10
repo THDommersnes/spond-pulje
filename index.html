@@ -19,11 +19,12 @@
       font-family: Arial, sans-serif;
       margin: 20px;
       font-size: 18px;
+      background: white; /* siden er alltid hvit */
       -webkit-touch-callout: none;
       -webkit-text-size-adjust: 100%;
     }
 
-    /* ⭐ Logo – alltid hvit bakplate som default */
+    /* ⭐ Logo – alltid hvit bakplate */
     .logo {
       display: block;
       margin: 0 auto 20px auto;
@@ -31,7 +32,7 @@
       height: auto;
       border-radius: 50%;
       padding: 6px;
-      background: white; /* tvungen hvit bakplate */
+      background: white; /* alltid hvit */
       box-shadow: 0 0 8px rgba(0,0,0,0.15);
 
       opacity: 0;
@@ -45,14 +46,6 @@
       .logo:hover {
         box-shadow: 0 0 18px rgba(31,143,58,0.55);
         transform: scale(1.03);
-      }
-    }
-
-    /* 🌙 Logo – mørk modus (kun når faktisk mørk modus er aktiv) */
-    @media (prefers-color-scheme: dark) {
-      body:not(.force-light) .logo {
-        background: #222;
-        box-shadow: 0 0 10px rgba(255,255,255,0.15);
       }
     }
 
@@ -114,13 +107,6 @@
     button:active {
       background-color: #146628;
       transform: scale(0.97);
-    }
-
-    @media (prefers-color-scheme: dark) {
-      button {
-        background-color: #1f8f3a;
-        color: white;
-      }
     }
 
     input[type="file"] {
