@@ -83,7 +83,7 @@
       min-width: 100px;
     }
 
-    /* 🟢 Nest‑Sotra grønne knapper */
+    /* 🟢 Nest‑Sotra grønne knapper + fade‑in */
     button {
       font-size: 20px;
       padding: 12px 18px;
@@ -95,11 +95,32 @@
       color: white;
       border: none;
       box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-      transition: background-color 0.2s ease;
+
+      /* ✨ Fade‑in */
+      opacity: 0;
+      animation: fadeIn 0.6s ease-in-out forwards;
+
+      /* 🟢 Press-effekt */
+      transition: background-color 0.15s ease, transform 0.1s ease;
     }
 
+    /* 🟢 Hover (PC) */
     button:hover {
       background-color: #187a31;
+    }
+
+    /* 🟢 Trykk på mobil */
+    button:active {
+      background-color: #146628;
+      transform: scale(0.97);
+    }
+
+    /* 🌙 Mørk modus – knapper */
+    @media (prefers-color-scheme: dark) {
+      button {
+        background-color: #1f8f3a;
+        color: white;
+      }
     }
 
     input[type="file"] {
