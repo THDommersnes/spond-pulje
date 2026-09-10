@@ -25,16 +25,24 @@
       -webkit-text-size-adjust: 100%;
     }
 
-    /* ⭐ Logo-stil med hvit outline */
+    /* ⭐ Logo – lys modus */
     .logo {
       display: block;
       margin: 0 auto 20px auto;
       max-width: 140px; /* perfekt størrelse for mobil */
       height: auto;
       border-radius: 50%;
-      padding: 6px; /* gir litt luft rundt outline */
+      padding: 6px; /* luft rundt outline */
       background: white; /* hvit outline */
       box-shadow: 0 0 8px rgba(0,0,0,0.15); /* subtil dybde */
+    }
+
+    /* 🌙 Logo – mørk modus */
+    @media (prefers-color-scheme: dark) {
+      .logo {
+        background: #222; /* mørk bakplate */
+        box-shadow: 0 0 10px rgba(255,255,255,0.15); /* lys glød */
+      }
     }
 
     h1 {
