@@ -1,0 +1,32 @@
+name: Update groups.json
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        run: npm install
+
+      - name: Run script
+        env:
+          SPOND_TOKEN: ${{ secrets.SPOND_TOKEN }}
+        run: node script.js
+
+      - name: Commit changes
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add groups.json
+          git commit -m "Update groups.json" || echo "No changes to commit"
+          git push
