@@ -1,3 +1,5 @@
+// rebuild – markerer at filen er oppdatert
+
 console.log("XLSX er:", XLSX);
 
 let players = [];
@@ -11,20 +13,21 @@ function updateGroups() {
     Keeper: []
   };
 
+  // Fordel spillere i grupper
   players.forEach(p => {
     if (groups[p.level]) groups[p.level].push(p.name);
   });
 
-  // Sortering
+  // Sortering alfabetisk
   Object.keys(groups).forEach(key => groups[key].sort());
 
-  // Oppdater HTML
+  // Oppdater HTML-lister
   document.getElementById("gr1List").innerHTML = groups.Gr1.map(n => `<li>${n}</li>`).join("");
   document.getElementById("gr2List").innerHTML = groups.Gr2.map(n => `<li>${n}</li>`).join("");
   document.getElementById("gr3List").innerHTML = groups.Gr3.map(n => `<li>${n}</li>`).join("");
   document.getElementById("keeperList").innerHTML = groups.Keeper.map(n => `<li>${n}</li>`).join("");
 
-  // Tekst for kopiering
+  // Tekst som kan kopieres
   window.generatedText =
     `Gr1:\n${groups.Gr1.join("\n")}\n\n` +
     `Gr2:\n${groups.Gr2.join("\n")}\n\n` +
@@ -56,7 +59,7 @@ document.getElementById('importButton').addEventListener('click', () => {
       const sheet = workbook.Sheets[sheetName];
       const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-      // Finn header-raden
+      /* ⭐ Finn header-raden */
       const headerIndex = rows.findIndex(r =>
         r.some(cell => (cell + "").trim().toLowerCase() === "status") &&
         r.some(cell => (cell + "").trim().toLowerCase() === "navn")
@@ -73,6 +76,7 @@ document.getElementById('importButton').addEventListener('click', () => {
 
       const tableRows = rows.slice(headerIndex + 1);
 
+      /* ⭐ Les hver rad i tabellen */
       tableRows.forEach(row => {
         const status = (row[statusCol] || "").toString().trim().toLowerCase();
         const name = (row[nameCol] || "").toString().trim();
@@ -99,13 +103,14 @@ document.getElementById('importButton').addEventListener('click', () => {
 
           players.push({ name, level: "Gr3", select });
 
-          // Oppdater grupper når dropdown endres
+          /* ⭐ Oppdater grupper når dropdown endres */
           select.addEventListener("change", () => {
             const p = players.find(x => x.name === name);
             p.level = select.value;
             updateGroups();
           });
 
+          /* ⭐ Riktig rekkefølge for PC/mobil */
           li.appendChild(select);
           li.appendChild(nameSpan);
 
