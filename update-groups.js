@@ -1,11 +1,12 @@
-import fs from "fs";
+const fs = require("fs");
+const https = require("https");
 
 const token = process.env.SPOND_TOKEN;
 
-async function fetchSpondData() {
+function fetchSpondData() {
   const url = "https://api.spond.com/graphql";
 
-  const query = {
+  const query = JSON.stringify({
     query: `
       query {
         myGroups {
@@ -18,32 +19,44 @@ async function fetchSpondData() {
         }
       }
     `
-  };
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
-    },
-    body: JSON.stringify(query)
   });
 
-  if (!res.ok) {
-    console.error("❌ Spond API feilet med status:", res.status);
-    const text = await res.text();
-    console.error("Respons fra Spond:", text);
-    throw new Error("Spond API error");
-  }
+  return new Promise((resolve, reject) => {
+    const req = https.request(
+      url,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+          "Content-Length": Buffer.byteLength(query)
+        }
+      },
+      res => {
+        let data = "";
+        res.on("data", chunk => (data += chunk));
+        res.on("end", () => {
+          if (res.statusCode < 200 || res.statusCode >= 300) {
+            console.error("❌ Spond API feilet med status:", res.statusCode);
+            console.error("Respons:", data);
+            reject(new Error("Spond API error"));
+            return;
+          }
 
-  const json = await res.json();
+          try {
+            const json = JSON.parse(data);
+            resolve(json);
+          } catch (err) {
+            reject(err);
+          }
+        });
+      }
+    );
 
-  if (!json.data || !json.data.myGroups) {
-    console.error("❌ Ugyldig respons fra Spond:", JSON.stringify(json, null, 2));
-    throw new Error("Invalid Spond response");
-  }
-
-  return json.data.myGroups;
+    req.on("error", reject);
+    req.write(query);
+    req.end();
+  });
 }
 
 function generateGroups(members) {
@@ -66,9 +79,14 @@ function generateGroups(members) {
 async function main() {
   console.log("Henter data fra Spond…");
 
-  const groupsFromSpond = await fetchSpondData();
+  const json = await fetchSpondData();
 
-  const firstGroup = groupsFromSpond[0];
+  if (!json.data || !json.data.myGroups) {
+    console.error("❌ Ugyldig respons fra Spond:", JSON.stringify(json, null, 2));
+    throw new Error("Invalid Spond response");
+  }
+
+  const firstGroup = json.data.myGroups[0];
   const members = firstGroup.members.filter(m => m.status === "kommer");
 
   const groups = generateGroups(members);
