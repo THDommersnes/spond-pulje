@@ -7,6 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
+  <!-- Excel-bibliotek -->
   <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
@@ -19,6 +20,7 @@
     h1 {
       margin-bottom: 20px;
       font-size: 28px;
+      text-align: center;
     }
 
     h2 {
@@ -65,6 +67,19 @@
       margin-top: 10px;
       padding-left: 20px;
     }
+
+    /* Litt ekstra mobilvennlighet */
+    @media (max-width: 600px) {
+      body {
+        font-size: 16px;
+      }
+      button {
+        font-size: 18px;
+      }
+      select {
+        font-size: 16px;
+      }
+    }
   </style>
 </head>
 
@@ -78,6 +93,7 @@
   <ul id="playerList"></ul>
 
   <button id="generateGroupsButton">Generer grupper</button>
+  <button id="copyButton">Kopier puljer</button>
 
   <!-- ⭐ Seksjoner for grupper -->
   <div class="group-box">
