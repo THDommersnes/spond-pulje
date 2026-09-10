@@ -1,25 +1,35 @@
-// rebuild
 console.log("XLSX er:", XLSX);
 
 let players = [];
 
-/* ⭐ Automatisk oppdatering av grupper */
+/* ⭐ Oppdaterer alle grupper basert på players[] */
 function updateGroups() {
-  const gr1 = players.filter(p => p.level === "Gr1").map(p => p.name).sort();
-  const gr2 = players.filter(p => p.level === "Gr2").map(p => p.name).sort();
-  const gr3 = players.filter(p => p.level === "Gr3").map(p => p.name).sort();
-  const keepers = players.filter(p => p.level === "Keeper").map(p => p.name).sort();
+  const groups = {
+    Gr1: [],
+    Gr2: [],
+    Gr3: [],
+    Keeper: []
+  };
 
-  document.getElementById("gr1List").innerHTML = gr1.map(n => `<li>${n}</li>`).join("");
-  document.getElementById("gr2List").innerHTML = gr2.map(n => `<li>${n}</li>`).join("");
-  document.getElementById("gr3List").innerHTML = gr3.map(n => `<li>${n}</li>`).join("");
-  document.getElementById("keeperList").innerHTML = keepers.map(n => `<li>${n}</li>`).join("");
+  players.forEach(p => {
+    if (groups[p.level]) groups[p.level].push(p.name);
+  });
 
+  // Sortering
+  Object.keys(groups).forEach(key => groups[key].sort());
+
+  // Oppdater HTML
+  document.getElementById("gr1List").innerHTML = groups.Gr1.map(n => `<li>${n}</li>`).join("");
+  document.getElementById("gr2List").innerHTML = groups.Gr2.map(n => `<li>${n}</li>`).join("");
+  document.getElementById("gr3List").innerHTML = groups.Gr3.map(n => `<li>${n}</li>`).join("");
+  document.getElementById("keeperList").innerHTML = groups.Keeper.map(n => `<li>${n}</li>`).join("");
+
+  // Tekst for kopiering
   window.generatedText =
-    `Gr1:\n${gr1.join("\n")}\n\n` +
-    `Gr2:\n${gr2.join("\n")}\n\n` +
-    `Gr3:\n${gr3.join("\n")}\n\n` +
-    `Keeper:\n${keepers.join("\n")}\n\n`;
+    `Gr1:\n${groups.Gr1.join("\n")}\n\n` +
+    `Gr2:\n${groups.Gr2.join("\n")}\n\n` +
+    `Gr3:\n${groups.Gr3.join("\n")}\n\n` +
+    `Keeper:\n${groups.Keeper.join("\n")}\n\n`;
 }
 
 /* ⭐ Import av Spond-filer */
@@ -44,10 +54,10 @@ document.getElementById('importButton').addEventListener('click', () => {
 
       const sheetName = workbook.SheetNames[1];
       const sheet = workbook.Sheets[sheetName];
-
       const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-      let headerIndex = rows.findIndex(r =>
+      // Finn header-raden
+      const headerIndex = rows.findIndex(r =>
         r.some(cell => (cell + "").trim().toLowerCase() === "status") &&
         r.some(cell => (cell + "").trim().toLowerCase() === "navn")
       );
@@ -58,14 +68,8 @@ document.getElementById('importButton').addEventListener('click', () => {
       }
 
       const headerRow = rows[headerIndex];
-
-      const statusCol = headerRow.findIndex(c =>
-        (c + "").trim().toLowerCase() === "status"
-      );
-
-      const nameCol = headerRow.findIndex(c =>
-        (c + "").trim().toLowerCase() === "navn"
-      );
+      const statusCol = headerRow.findIndex(c => (c + "").trim().toLowerCase() === "status");
+      const nameCol = headerRow.findIndex(c => (c + "").trim().toLowerCase() === "navn");
 
       const tableRows = rows.slice(headerIndex + 1);
 
@@ -75,15 +79,15 @@ document.getElementById('importButton').addEventListener('click', () => {
 
         if (status === "kommer" && name !== "") {
 
+          // Unngå duplikater
           if (players.some(p => p.name === name)) return;
 
           const li = document.createElement("li");
 
           const nameSpan = document.createElement("span");
-          nameSpan.textContent = name + " ";
+          nameSpan.textContent = name;
 
           const select = document.createElement("select");
-
           ["Gr1", "Gr2", "Gr3", "Keeper"].forEach(level => {
             const option = document.createElement("option");
             option.value = level;
@@ -95,21 +99,20 @@ document.getElementById('importButton').addEventListener('click', () => {
 
           players.push({ name, level: "Gr3", select });
 
-          /* ⭐ Automatisk oppdatering når dropdown endres */
+          // Oppdater grupper når dropdown endres
           select.addEventListener("change", () => {
             const p = players.find(x => x.name === name);
             p.level = select.value;
             updateGroups();
           });
 
-          li.appendChild(nameSpan);
           li.appendChild(select);
+          li.appendChild(nameSpan);
 
           playerList.appendChild(li);
         }
       });
 
-      /* ⭐ Oppdater grupper etter import */
       updateGroups();
     };
 
