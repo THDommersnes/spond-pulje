@@ -4,7 +4,8 @@ const https = require("https");
 const token = process.env.SPOND_TOKEN;
 
 function fetchSpondData() {
-  const url = "https://api.spond.com/graphql";
+  // ⭐ NY URL – dette var feilen
+  const url = "https://api.spond.com/graphql/v1";
 
   const query = JSON.stringify({
     query: `
