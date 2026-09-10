@@ -4,6 +4,17 @@ console.log("XLSX er:", XLSX);
 
 let players = [];
 
+/* ⭐ Lagring av grupper i localStorage */
+function saveGroup(name, level) {
+  const saved = JSON.parse(localStorage.getItem("savedGroups") || "{}");
+  saved[name] = level;
+  localStorage.setItem("savedGroups", JSON.stringify(saved));
+}
+
+function loadSavedGroups() {
+  return JSON.parse(localStorage.getItem("savedGroups") || "{}");
+}
+
 /* ⭐ Oppdaterer alle grupper basert på players[] */
 function updateGroups() {
   const groups = {
@@ -13,21 +24,17 @@ function updateGroups() {
     Keeper: []
   };
 
-  // Fordel spillere i grupper
   players.forEach(p => {
     if (groups[p.level]) groups[p.level].push(p.name);
   });
 
-  // Sortering alfabetisk
   Object.keys(groups).forEach(key => groups[key].sort());
 
-  // Oppdater HTML-lister
   document.getElementById("gr1List").innerHTML = groups.Gr1.map(n => `<li>${n}</li>`).join("");
   document.getElementById("gr2List").innerHTML = groups.Gr2.map(n => `<li>${n}</li>`).join("");
   document.getElementById("gr3List").innerHTML = groups.Gr3.map(n => `<li>${n}</li>`).join("");
   document.getElementById("keeperList").innerHTML = groups.Keeper.map(n => `<li>${n}</li>`).join("");
 
-  // Tekst som kan kopieres
   window.generatedText =
     `Gr1:\n${groups.Gr1.join("\n")}\n\n` +
     `Gr2:\n${groups.Gr2.join("\n")}\n\n` +
@@ -45,6 +52,8 @@ document.getElementById('importButton').addEventListener('click', () => {
   }
 
   players = [];
+  const savedGroups = loadSavedGroups();
+
   const playerList = document.getElementById('playerList');
   playerList.innerHTML = "";
 
@@ -99,14 +108,20 @@ document.getElementById('importButton').addEventListener('click', () => {
             select.appendChild(option);
           });
 
-          select.value = "Gr3";
+          /* ⭐ Hvis spilleren har lagret gruppe → bruk den */
+          if (savedGroups[name]) {
+            select.value = savedGroups[name];
+          } else {
+            select.value = "Gr3"; // default
+          }
 
-          players.push({ name, level: "Gr3", select });
+          players.push({ name, level: select.value, select });
 
           /* ⭐ Oppdater grupper når dropdown endres */
           select.addEventListener("change", () => {
             const p = players.find(x => x.name === name);
             p.level = select.value;
+            saveGroup(name, select.value);
             updateGroups();
           });
 
