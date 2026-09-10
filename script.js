@@ -3,6 +3,26 @@ console.log("XLSX er:", XLSX);
 
 let players = [];
 
+/* ⭐ Automatisk oppdatering av grupper */
+function updateGroups() {
+  const gr1 = players.filter(p => p.level === "Gr1").map(p => p.name).sort();
+  const gr2 = players.filter(p => p.level === "Gr2").map(p => p.name).sort();
+  const gr3 = players.filter(p => p.level === "Gr3").map(p => p.name).sort();
+  const keepers = players.filter(p => p.level === "Keeper").map(p => p.name).sort();
+
+  document.getElementById("gr1List").innerHTML = gr1.map(n => `<li>${n}</li>`).join("");
+  document.getElementById("gr2List").innerHTML = gr2.map(n => `<li>${n}</li>`).join("");
+  document.getElementById("gr3List").innerHTML = gr3.map(n => `<li>${n}</li>`).join("");
+  document.getElementById("keeperList").innerHTML = keepers.map(n => `<li>${n}</li>`).join("");
+
+  window.generatedText =
+    `Gr1:\n${gr1.join("\n")}\n\n` +
+    `Gr2:\n${gr2.join("\n")}\n\n` +
+    `Gr3:\n${gr3.join("\n")}\n\n` +
+    `Keeper:\n${keepers.join("\n")}\n\n`;
+}
+
+/* ⭐ Import av Spond-filer */
 document.getElementById('importButton').addEventListener('click', () => {
   const files = Array.from(document.getElementById('fileInput').files);
 
@@ -75,9 +95,11 @@ document.getElementById('importButton').addEventListener('click', () => {
 
           players.push({ name, level: "Gr3", select });
 
+          /* ⭐ Automatisk oppdatering når dropdown endres */
           select.addEventListener("change", () => {
             const p = players.find(x => x.name === name);
             p.level = select.value;
+            updateGroups();
           });
 
           li.appendChild(nameSpan);
@@ -86,35 +108,19 @@ document.getElementById('importButton').addEventListener('click', () => {
           playerList.appendChild(li);
         }
       });
+
+      /* ⭐ Oppdater grupper etter import */
+      updateGroups();
     };
 
     reader.readAsArrayBuffer(file);
   });
 });
 
-document.getElementById("generateGroupsButton").addEventListener("click", () => {
-
-  const gr1 = players.filter(p => p.level === "Gr1").map(p => p.name).sort();
-  const gr2 = players.filter(p => p.level === "Gr2").map(p => p.name).sort();
-  const gr3 = players.filter(p => p.level === "Gr3").map(p => p.name).sort();
-  const keepers = players.filter(p => p.level === "Keeper").map(p => p.name).sort();
-
-  document.getElementById("gr1List").innerHTML = gr1.map(n => `<li>${n}</li>`).join("");
-  document.getElementById("gr2List").innerHTML = gr2.map(n => `<li>${n}</li>`).join("");
-  document.getElementById("gr3List").innerHTML = gr3.map(n => `<li>${n}</li>`).join("");
-  document.getElementById("keeperList").innerHTML = keepers.map(n => `<li>${n}</li>`).join("");
-
-  window.generatedText =
-    `Gr1:\n${gr1.join("\n")}\n\n` +
-    `Gr2:\n${gr2.join("\n")}\n\n` +
-    `Gr3:\n${gr3.join("\n")}\n\n` +
-    `Keeper:\n${keepers.join("\n")}\n\n`;
-});
-
-// ⭐ Kopier-knapp
+/* ⭐ Kopier-knapp */
 document.getElementById("copyButton").addEventListener("click", () => {
   if (!window.generatedText) {
-    alert("Du må generere puljer først.");
+    alert("Du må importere spillere først.");
     return;
   }
 
