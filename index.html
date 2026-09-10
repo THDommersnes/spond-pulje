@@ -2,11 +2,14 @@
 <html lang="no">
 <head>
   <meta charset="UTF-8" />
-  <title>Spond puljegenerator</title>
+  <title>Nest‑Sotra – Puljegenerator</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
   <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- ⭐ Sportslig, ren font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
   <style>
     html, body {
@@ -15,45 +18,57 @@
     }
 
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
+      font-family: 'Inter', Arial, sans-serif;
+      margin: 0;
       font-size: 18px;
-      background: white;
+      background: #ffffff;
       -webkit-touch-callout: none;
       -webkit-text-size-adjust: 100%;
     }
 
-    /* ⭐ Logo – trygg versjon */
-    .logo {
-      display: block;
-      margin: 0 auto 20px auto;
-      max-width: 140px;
-      height: auto;
-      border-radius: 50%;
-      padding: 8px;
-      background: #ffffff !important;
-      box-shadow: 0 0 8px rgba(0,0,0,0.15);
-      opacity: 0;
-      animation: fadeIn 0.6s ease-in-out forwards;
-      transition: box-shadow 0.25s ease, transform 0.25s ease;
+    /* ⭐ Nest‑Sotra toppbanner */
+    .topbar {
+      background: #1f8f3a;
+      color: white;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
 
-    @media (hover: hover) {
-      .logo:hover {
-        box-shadow: 0 0 18px rgba(31,143,58,0.55);
-        transform: scale(1.03);
+    .topbar img {
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      background: white;
+      padding: 4px;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 600;
+    }
+
+    /* ⭐ Logo i midten (mobil) */
+    @media (max-width: 600px) {
+      .topbar {
+        flex-direction: column;
+        text-align: center;
       }
     }
 
-    h1 {
-      margin-bottom: 20px;
-      font-size: 28px;
-      text-align: center;
+    /* ⭐ Innhold */
+    .content {
+      padding: 20px;
     }
 
     h2 {
       font-size: 22px;
       margin-top: 25px;
+      font-weight: 600;
+      color: #1f8f3a;
     }
 
     /* ⭐ PC – meny til venstre */
@@ -82,8 +97,10 @@
       padding: 8px;
       border-radius: 6px;
       min-width: 100px;
+      border: 2px solid #1f8f3a;
     }
 
+    /* ⭐ Nest‑Sotra knapper */
     button {
       font-size: 20px;
       padding: 12px 18px;
@@ -95,8 +112,6 @@
       color: white;
       border: none;
       box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-      opacity: 0;
-      animation: fadeIn 0.6s ease-in-out forwards;
       transition: background-color 0.15s ease, transform 0.1s ease;
     }
 
@@ -114,21 +129,19 @@
       margin-bottom: 10px;
     }
 
+    /* ⭐ Nest‑Sotra gruppebokser */
     .group-box {
-      background: #f3f3f3;
+      background: #ffffff;
       padding: 15px;
       border-radius: 8px;
       margin-top: 20px;
+      border-left: 6px solid #1f8f3a;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
     .group-box ul {
       margin-top: 10px;
       padding-left: 20px;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
     }
 
     /* ⭐ Drag-and-drop styling */
@@ -163,30 +176,23 @@
     }
 
     @keyframes flashGroup {
-      from { background-color: #c8ffda; }
-      to { background-color: #f3f3f3; }
+      from { background-color: #d9f7e3; }
+      to { background-color: #ffffff; }
     }
 
+    /* ⭐ Mobil-tilpasning */
     @media (max-width: 600px) {
       body {
         font-size: 15px;
-        padding: 10px;
-      }
-
-      h1 {
-        font-size: 22px;
-        margin-bottom: 15px;
       }
 
       h2 {
         font-size: 18px;
-        margin-top: 20px;
       }
 
       button {
         font-size: 17px;
         padding: 10px 14px;
-        margin-top: 12px;
       }
 
       select {
@@ -214,36 +220,42 @@
 
 <body>
 
-  <img src="logo2.png" alt="Nest-Sotra logo" class="logo">
-
-  <h1>Spond puljegenerator</h1>
-
-  <input type="file" id="fileInput" accept=".xlsx,.xls" multiple />
-  <button id="importButton">Importer Spond-fil</button>
-
-  <h2>Spillere</h2>
-  <ul id="playerList"></ul>
-
-  <button id="copyButton">Kopier puljer</button>
-
-  <div class="group-box">
-    <h2>Gr1</h2>
-    <ul id="gr1List"></ul>
+  <!-- ⭐ Nest‑Sotra toppbanner -->
+  <div class="topbar">
+    <img src="logo2.png" alt="Nest-Sotra logo">
+    <h1>Nest‑Sotra – Puljegenerator</h1>
   </div>
 
-  <div class="group-box">
-    <h2>Gr2</h2>
-    <ul id="gr2List"></ul>
-  </div>
+  <div class="content">
 
-  <div class="group-box">
-    <h2>Gr3</h2>
-    <ul id="gr3List"></ul>
-  </div>
+    <input type="file" id="fileInput" accept=".xlsx,.xls" multiple />
+    <button id="importButton">Importer Spond-fil</button>
 
-  <div class="group-box">
-    <h2>Keeper</h2>
-    <ul id="keeperList"></ul>
+    <h2>Spillere</h2>
+    <ul id="playerList"></ul>
+
+    <button id="copyButton">Kopier puljer</button>
+
+    <div class="group-box">
+      <h2>Gr1</h2>
+      <ul id="gr1List"></ul>
+    </div>
+
+    <div class="group-box">
+      <h2>Gr2</h2>
+      <ul id="gr2List"></ul>
+    </div>
+
+    <div class="group-box">
+      <h2>Gr3</h2>
+      <ul id="gr3List"></ul>
+    </div>
+
+    <div class="group-box">
+      <h2>Keeper</h2>
+      <ul id="keeperList"></ul>
+    </div>
+
   </div>
 
   <script src="script.js"></script>
