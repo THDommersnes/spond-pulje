@@ -42,7 +42,7 @@ function updateGroups() {
     `Keeper:\n${groups.Keeper.join("\n")}\n\n`;
 }
 
-/* ⭐ Drag-and-drop mellom grupper (med alfabetisk sortering) */
+/* ⭐ Drag-and-drop mellom grupper (med animasjon + alfabetisk sortering) */
 function enableGroupDragAndDrop() {
   const lists = [
     { element: document.getElementById("gr1List"), level: "Gr1" },
@@ -82,8 +82,19 @@ function enableGroupDragAndDrop() {
       // ⭐ Oppdater grupper (alfabetisk sortering skjer her)
       updateGroups();
 
+      // ⭐ Flash-animasjon på gruppen
+      ul.classList.add("group-flash");
+      setTimeout(() => ul.classList.remove("group-flash"), 400);
+
       // ⭐ Re-aktiver drag-and-drop etter sortering
       enableGroupDragAndDrop();
+
+      // ⭐ Flyt-inn animasjon på spilleren
+      const li = [...ul.querySelectorAll("li")].find(x => x.textContent.trim() === name);
+      if (li) {
+        li.classList.add("player-drop-anim");
+        setTimeout(() => li.classList.remove("player-drop-anim"), 300);
+      }
     });
   });
 
