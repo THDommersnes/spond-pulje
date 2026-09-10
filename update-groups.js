@@ -1,5 +1,4 @@
 import fs from "fs";
-import fetch from "node-fetch";
 
 const token = process.env.SPOND_TOKEN;
 
@@ -56,7 +55,6 @@ async function main() {
 
   const groupsFromSpond = await fetchSpondData();
 
-  // Du kan velge hvilken gruppe du vil bruke
   const firstGroup = groupsFromSpond[0];
   const members = firstGroup.members.filter(m => m.status === "kommer");
 
