@@ -68,7 +68,9 @@ document.getElementById('importButton').addEventListener('click', () => {
           nameSpan.textContent = name + " ";
 
           const select = document.createElement("select");
-          ["Gr1", "Gr2", "Gr3"].forEach(level => {
+
+          // ⭐ Oppdatert: Keeper lagt til
+          ["Gr1", "Gr2", "Gr3", "Keeper"].forEach(level => {
             const option = document.createElement("option");
             option.value = level;
             option.textContent = level;
@@ -97,15 +99,20 @@ document.getElementById('importButton').addEventListener('click', () => {
 });
 
 document.getElementById("generateGroupsButton").addEventListener("click", () => {
+
   const gr1 = players.filter(p => p.level === "Gr1").map(p => p.name);
   const gr2 = players.filter(p => p.level === "Gr2").map(p => p.name);
   const gr3 = players.filter(p => p.level === "Gr3").map(p => p.name);
+
+  // ⭐ Oppdatert: Keeper-gruppe
+  const keepers = players.filter(p => p.level === "Keeper").map(p => p.name);
 
   let output = "Puljer:\n\n";
 
   output += "Gr1:\n" + gr1.join("\n") + "\n\n";
   output += "Gr2:\n" + gr2.join("\n") + "\n\n";
   output += "Gr3:\n" + gr3.join("\n") + "\n\n";
+  output += "Keeper:\n" + keepers.join("\n") + "\n\n";
 
   alert(output);
 });
