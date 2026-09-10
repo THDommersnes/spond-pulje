@@ -42,6 +42,66 @@ function updateGroups() {
     `Keeper:\n${groups.Keeper.join("\n")}\n\n`;
 }
 
+/* ⭐ Drag-and-drop mellom grupper (med alfabetisk sortering) */
+function enableGroupDragAndDrop() {
+  const lists = [
+    { element: document.getElementById("gr1List"), level: "Gr1" },
+    { element: document.getElementById("gr2List"), level: "Gr2" },
+    { element: document.getElementById("gr3List"), level: "Gr3" },
+    { element: document.getElementById("keeperList"), level: "Keeper" }
+  ];
+
+  lists.forEach(listObj => {
+    const ul = listObj.element;
+
+    ul.addEventListener("dragover", e => {
+      e.preventDefault();
+      ul.classList.add("drag-target");
+    });
+
+    ul.addEventListener("dragleave", () => {
+      ul.classList.remove("drag-target");
+    });
+
+    ul.addEventListener("drop", e => {
+      e.preventDefault();
+      ul.classList.remove("drag-target");
+
+      const name = e.dataTransfer.getData("text/plain");
+      const player = players.find(p => p.name === name);
+
+      if (!player) return;
+
+      // Oppdater nivå
+      player.level = listObj.level;
+      player.select.value = listObj.level;
+
+      // Lagre i localStorage
+      saveGroup(name, listObj.level);
+
+      // ⭐ Oppdater grupper (alfabetisk sortering skjer her)
+      updateGroups();
+
+      // ⭐ Re-aktiver drag-and-drop etter sortering
+      enableGroupDragAndDrop();
+    });
+  });
+
+  // Aktiver drag på alle li-elementer
+  document.querySelectorAll("#gr1List li, #gr2List li, #gr3List li, #keeperList li").forEach(li => {
+    li.draggable = true;
+
+    li.addEventListener("dragstart", e => {
+      li.classList.add("dragging");
+      e.dataTransfer.setData("text/plain", li.textContent.trim());
+    });
+
+    li.addEventListener("dragend", () => {
+      li.classList.remove("dragging");
+    });
+  });
+}
+
 /* ⭐ Import av Spond-filer */
 document.getElementById('importButton').addEventListener('click', () => {
   const files = Array.from(document.getElementById('fileInput').files);
@@ -123,6 +183,7 @@ document.getElementById('importButton').addEventListener('click', () => {
             p.level = select.value;
             saveGroup(name, select.value);
             updateGroups();
+            enableGroupDragAndDrop();
           });
 
           /* ⭐ Riktig rekkefølge for PC/mobil */
@@ -134,6 +195,7 @@ document.getElementById('importButton').addEventListener('click', () => {
       });
 
       updateGroups();
+      enableGroupDragAndDrop();
     };
 
     reader.readAsArrayBuffer(file);
