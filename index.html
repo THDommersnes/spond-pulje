@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <title>Spond puljegenerator</title>
 
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
   <!-- Excel-bibliotek -->
   <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -15,6 +15,8 @@
       font-family: Arial, sans-serif;
       margin: 20px;
       font-size: 18px;
+      -webkit-touch-callout: none;
+      -webkit-text-size-adjust: 100%;
     }
 
     h1 {
@@ -41,6 +43,7 @@
       font-size: 18px;
       padding: 8px;
       border-radius: 6px;
+      min-width: 110px;
     }
 
     button {
@@ -49,6 +52,7 @@
       margin-top: 15px;
       width: 100%;
       border-radius: 8px;
+      cursor: pointer;
     }
 
     input[type="file"] {
@@ -68,16 +72,47 @@
       padding-left: 20px;
     }
 
-    /* Litt ekstra mobilvennlighet */
+    /* Super-mobilvennlig layout (iPhone + Android) */
     @media (max-width: 600px) {
+
       body {
-        font-size: 16px;
+        font-size: 15px;
+        padding: 10px;
       }
-      button {
+
+      h1 {
+        font-size: 22px;
+        margin-bottom: 15px;
+      }
+
+      h2 {
         font-size: 18px;
+        margin-top: 20px;
       }
+
+      button {
+        font-size: 17px;
+        padding: 10px 14px;
+        margin-top: 12px;
+      }
+
       select {
-        font-size: 16px;
+        font-size: 15px;
+        padding: 6px;
+      }
+
+      #playerList li {
+        padding: 6px 0;
+        margin: 8px 0;
+      }
+
+      .group-box {
+        padding: 12px;
+        margin-top: 15px;
+      }
+
+      .group-box ul {
+        padding-left: 15px;
       }
     }
   </style>
