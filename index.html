@@ -61,7 +61,7 @@
       margin: 12px 0;
       font-size: 18px;
       display: flex;
-      flex-direction: row; /* meny → navn */
+      flex-direction: row;
       justify-content: flex-start;
       align-items: center;
       gap: 20px;
@@ -71,7 +71,7 @@
     /* ⭐ Mobil – meny til høyre */
     @media (max-width: 600px) {
       #playerList li {
-        flex-direction: row-reverse; /* navn → meny */
+        flex-direction: row-reverse;
         justify-content: space-between;
         gap: 0;
       }
@@ -129,6 +129,16 @@
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
+    }
+
+    /* ⭐ Drag-and-drop styling */
+    .dragging {
+      opacity: 0.4;
+    }
+
+    .drag-target {
+      background: #e8ffe8;
+      border-radius: 6px;
     }
 
     @media (max-width: 600px) {
