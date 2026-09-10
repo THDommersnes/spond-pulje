@@ -24,7 +24,7 @@
       -webkit-text-size-adjust: 100%;
     }
 
-    /* ⭐ Logo – lys modus */
+    /* ⭐ Logo – alltid hvit bakplate som default */
     .logo {
       display: block;
       margin: 0 auto 20px auto;
@@ -32,7 +32,7 @@
       height: auto;
       border-radius: 50%;
       padding: 6px;
-      background: white; /* hvit bakplate i lys modus */
+      background: white; /* tvungen hvit bakplate */
       box-shadow: 0 0 8px rgba(0,0,0,0.15);
 
       opacity: 0;
@@ -44,15 +44,15 @@
     /* ✨ Hover‑glød (PC) */
     @media (hover: hover) {
       .logo:hover {
-        box-shadow: 0 0 18px rgba(31,143,58,0.55); /* grønn glød */
+        box-shadow: 0 0 18px rgba(31,143,58,0.55);
         transform: scale(1.03);
       }
     }
 
-    /* 🌙 Logo – mørk modus */
+    /* 🌙 Logo – mørk modus (kun når faktisk mørk modus er aktiv) */
     @media (prefers-color-scheme: dark) {
-      .logo {
-        background: #222; /* mørk bakplate kun i mørk modus */
+      body:not(.force-light) .logo {
+        background: #222;
         box-shadow: 0 0 10px rgba(255,255,255,0.15);
       }
     }
