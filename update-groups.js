@@ -20,17 +20,36 @@ async function fetchSpondData() {
     `
   };
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
-    },
-    body: JSON.stringify(query)
-  });
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(query)
+    });
 
-  const json = await res.json();
-  return json.data.myGroups;
+    if (!res.ok) {
+      console.error("Spond API feilet med status:", res.status);
+      const text = await res.text();
+      console.error("Respons fra Spond:", text);
+      process.exit(1);
+    }
+
+    const json = await res.json();
+
+    if (!json.data || !json.data.myGroups) {
+      console.error("Ugyldig respons fra Spond:", JSON.stringify(json, null, 2));
+      process.exit(1);
+    }
+
+    return json.data.myGroups;
+
+  } catch (err) {
+    console.error("Fetch-kall feilet:", err);
+    process.exit(1);
+  }
 }
 
 function generateGroups(members) {
