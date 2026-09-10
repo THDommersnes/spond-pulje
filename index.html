@@ -29,20 +29,30 @@
     .logo {
       display: block;
       margin: 0 auto 20px auto;
-      max-width: 140px; /* perfekt størrelse for mobil */
+      max-width: 140px;
       height: auto;
       border-radius: 50%;
-      padding: 6px; /* luft rundt outline */
-      background: white; /* hvit outline */
-      box-shadow: 0 0 8px rgba(0,0,0,0.15); /* subtil dybde */
+      padding: 6px;
+      background: white;
+      box-shadow: 0 0 8px rgba(0,0,0,0.15);
+
+      /* ✨ Fade‑in animasjon */
+      opacity: 0;
+      animation: fadeIn 0.6s ease-in-out forwards;
     }
 
     /* 🌙 Logo – mørk modus */
     @media (prefers-color-scheme: dark) {
       .logo {
-        background: #222; /* mørk bakplate */
-        box-shadow: 0 0 10px rgba(255,255,255,0.15); /* lys glød */
+        background: #222;
+        box-shadow: 0 0 10px rgba(255,255,255,0.15);
       }
+    }
+
+    /* ✨ Fade‑in keyframes */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     h1 {
@@ -65,7 +75,7 @@
       padding: 8px 0;
     }
 
-    /* 🔥 Smalere dropdown → ingen horisontal scrolling */
+    /* 🔥 Dropdown */
     select {
       font-size: 18px;
       padding: 8px;
@@ -73,6 +83,7 @@
       min-width: 100px;
     }
 
+    /* 🟢 Nest‑Sotra grønne knapper */
     button {
       font-size: 20px;
       padding: 12px 18px;
@@ -80,6 +91,15 @@
       width: 100%;
       border-radius: 8px;
       cursor: pointer;
+      background-color: #1f8f3a;
+      color: white;
+      border: none;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      transition: background-color 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #187a31;
     }
 
     input[type="file"] {
@@ -126,7 +146,7 @@
       select {
         font-size: 15px;
         padding: 6px;
-        min-width: 90px; /* enda litt smalere på mobil */
+        min-width: 90px;
       }
 
       #playerList li {
@@ -159,10 +179,8 @@
   <h2>Spillere</h2>
   <ul id="playerList"></ul>
 
-  <!-- ⭐ Generer-knappen fjernet (auto-oppdatering i script.js) -->
   <button id="copyButton">Kopier puljer</button>
 
-  <!-- ⭐ Seksjoner for grupper -->
   <div class="group-box">
     <h2>Gr1</h2>
     <ul id="gr1List"></ul>
