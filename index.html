@@ -11,6 +11,12 @@
   <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
+    /* 🔥 Hindrer sideveis scrolling på iPhone + Android */
+    html, body {
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
@@ -39,11 +45,12 @@
       padding: 8px 0;
     }
 
+    /* 🔥 Smalere dropdown → ingen horisontal scrolling */
     select {
       font-size: 18px;
       padding: 8px;
       border-radius: 6px;
-      min-width: 110px;
+      min-width: 100px;
     }
 
     button {
@@ -99,6 +106,7 @@
       select {
         font-size: 15px;
         padding: 6px;
+        min-width: 90px; /* enda litt smalere på mobil */
       }
 
       #playerList li {
@@ -127,7 +135,7 @@
   <h2>Spillere</h2>
   <ul id="playerList"></ul>
 
-  <!-- ⭐ Generer-knappen fjernet -->
+  <!-- ⭐ Generer-knappen fjernet (auto-oppdatering i script.js) -->
   <button id="copyButton">Kopier puljer</button>
 
   <!-- ⭐ Seksjoner for grupper -->
