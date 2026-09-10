@@ -25,6 +25,18 @@
       -webkit-text-size-adjust: 100%;
     }
 
+    /* ⭐ Logo-stil med hvit outline */
+    .logo {
+      display: block;
+      margin: 0 auto 20px auto;
+      max-width: 140px; /* perfekt størrelse for mobil */
+      height: auto;
+      border-radius: 50%;
+      padding: 6px; /* gir litt luft rundt outline */
+      background: white; /* hvit outline */
+      box-shadow: 0 0 8px rgba(0,0,0,0.15); /* subtil dybde */
+    }
+
     h1 {
       margin-bottom: 20px;
       font-size: 28px;
@@ -127,6 +139,10 @@
 </head>
 
 <body>
+
+  <!-- ⭐ Logoen flettet inn -->
+  <img src="logo.png" alt="Nest-Sotra logo" class="logo">
+
   <h1>Spond puljegenerator</h1>
 
   <input type="file" id="fileInput" accept=".xlsx,.xls" multiple />
