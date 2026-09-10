@@ -65,13 +65,23 @@
       margin-top: 25px;
     }
 
+    /* ⭐ PC: meny til venstre */
     #playerList li {
       margin: 12px 0;
       font-size: 18px;
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-start;
       align-items: center;
+      gap: 20px; /* luft mellom meny og navn */
       padding: 8px 0;
+    }
+
+    /* ⭐ Mobil: meny til høyre */
+    @media (max-width: 600px) {
+      #playerList li {
+        justify-content: space-between;
+        gap: 0;
+      }
     }
 
     select {
