@@ -21,7 +21,7 @@ jobs:
       - name: Run script
         env:
           SPOND_TOKEN: ${{ secrets.SPOND_TOKEN }}
-        run: node script.js
+        run: node update-groups.js
 
       - name: Commit changes
         run: |
