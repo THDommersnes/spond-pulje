@@ -22,15 +22,11 @@ document.getElementById('importButton').addEventListener('click', () => {
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: 'array' });
 
-      // Bruker sheet 1 (For import)
       const sheetName = workbook.SheetNames[1];
       const sheet = workbook.Sheets[sheetName];
 
       const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-      console.log("Alle rader:", rows);
-
-      // Finn header-raden
       let headerIndex = rows.findIndex(r =>
         r.some(cell => (cell + "").trim().toLowerCase() === "status") &&
         r.some(cell => (cell + "").trim().toLowerCase() === "navn")
@@ -59,7 +55,6 @@ document.getElementById('importButton').addEventListener('click', () => {
 
         if (status === "kommer" && name !== "") {
 
-          // Unngå duplikater hvis samme spiller finnes i begge filer
           if (players.some(p => p.name === name)) return;
 
           const li = document.createElement("li");
@@ -69,7 +64,6 @@ document.getElementById('importButton').addEventListener('click', () => {
 
           const select = document.createElement("select");
 
-          // ⭐ Keeper lagt til
           ["Gr1", "Gr2", "Gr3", "Keeper"].forEach(level => {
             const option = document.createElement("option");
             option.value = level;
@@ -100,15 +94,31 @@ document.getElementById('importButton').addEventListener('click', () => {
 
 document.getElementById("generateGroupsButton").addEventListener("click", () => {
 
-  const gr1 = players.filter(p => p.level === "Gr1").map(p => p.name);
-  const gr2 = players.filter(p => p.level === "Gr2").map(p => p.name);
-  const gr3 = players.filter(p => p.level === "Gr3").map(p => p.name);
-  const keepers = players.filter(p => p.level === "Keeper").map(p => p.name);
+  const gr1 = players.filter(p => p.level === "Gr1").map(p => p.name).sort();
+  const gr2 = players.filter(p => p.level === "Gr2").map(p => p.name).sort();
+  const gr3 = players.filter(p => p.level === "Gr3").map(p => p.name).sort();
+  const keepers = players.filter(p => p.level === "Keeper").map(p => p.name).sort();
 
-  // ⭐ Fyll HTML-seksjonene
   document.getElementById("gr1List").innerHTML = gr1.map(n => `<li>${n}</li>`).join("");
   document.getElementById("gr2List").innerHTML = gr2.map(n => `<li>${n}</li>`).join("");
   document.getElementById("gr3List").innerHTML = gr3.map(n => `<li>${n}</li>`).join("");
   document.getElementById("keeperList").innerHTML = keepers.map(n => `<li>${n}</li>`).join("");
 
+  window.generatedText =
+    `Gr1:\n${gr1.join("\n")}\n\n` +
+    `Gr2:\n${gr2.join("\n")}\n\n` +
+    `Gr3:\n${gr3.join("\n")}\n\n` +
+    `Keeper:\n${keepers.join("\n")}\n\n`;
+});
+
+// ⭐ Kopier-knapp
+document.getElementById("copyButton").addEventListener("click", () => {
+  if (!window.generatedText) {
+    alert("Du må generere puljer først.");
+    return;
+  }
+
+  navigator.clipboard.writeText(window.generatedText)
+    .then(() => alert("Puljer kopiert!"))
+    .catch(() => alert("Kunne ikke kopiere."));
 });
