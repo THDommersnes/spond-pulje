@@ -1,226 +1,370 @@
-// rebuild – markerer at filen er oppdatert
-
-console.log("XLSX er:", XLSX);
+const STORAGE_KEY = 'nest-sotra-savedGroups';
+const GROUP_LEVELS = ['Gr1', 'Gr2', 'Gr3', 'Keeper'];
 
 let players = [];
 
-/* ⭐ Lagring av grupper i localStorage */
-function saveGroup(name, level) {
-  const saved = JSON.parse(localStorage.getItem("savedGroups") || "{}");
-  saved[name] = level;
-  localStorage.setItem("savedGroups", JSON.stringify(saved));
+function setStatus(message, isError = false) {
+  const statusEl = document.getElementById('statusMessage');
+  if (!statusEl) return;
+
+  statusEl.textContent = message || '';
+  statusEl.classList.toggle('visible', Boolean(message));
+  statusEl.classList.toggle('error', isError);
+}
+
+function safeParseJSON(value, fallback) {
+  try {
+    return value ? JSON.parse(value) : fallback;
+  } catch (error) {
+    console.warn('Kunne ikke lese lagret data:', error);
+    return fallback;
+  }
 }
 
 function loadSavedGroups() {
-  return JSON.parse(localStorage.getItem("savedGroups") || "{}");
+  return safeParseJSON(localStorage.getItem(STORAGE_KEY), {});
 }
 
-/* ⭐ Oppdaterer alle grupper basert på players[] */
-function updateGroups() {
-  const groups = {
+function saveGroup(name, level) {
+  const saved = loadSavedGroups();
+  saved[name] = level;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+}
+
+function clearSavedGroups() {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+function isKnownGroup(level) {
+  return GROUP_LEVELS.includes(level);
+}
+
+function getDefaultGroupForPlayer(name) {
+  const savedGroups = loadSavedGroups();
+  const saved = savedGroups[name];
+  return isKnownGroup(saved) ? saved : 'Gr3';
+}
+
+function buildGroupMap() {
+  return {
     Gr1: [],
     Gr2: [],
     Gr3: [],
     Keeper: []
   };
-
-  players.forEach(p => {
-    if (groups[p.level]) groups[p.level].push(p.name);
-  });
-
-  Object.keys(groups).forEach(key => groups[key].sort());
-
-  document.getElementById("gr1List").innerHTML = groups.Gr1.map(n => `<li>${n}</li>`).join("");
-  document.getElementById("gr2List").innerHTML = groups.Gr2.map(n => `<li>${n}</li>`).join("");
-  document.getElementById("gr3List").innerHTML = groups.Gr3.map(n => `<li>${n}</li>`).join("");
-  document.getElementById("keeperList").innerHTML = groups.Keeper.map(n => `<li>${n}</li>`).join("");
-
-  window.generatedText =
-    `Gr1:\n${groups.Gr1.join("\n")}\n\n` +
-    `Gr2:\n${groups.Gr2.join("\n")}\n\n` +
-    `Gr3:\n${groups.Gr3.join("\n")}\n\n` +
-    `Keeper:\n${groups.Keeper.join("\n")}\n\n`;
 }
 
-/* ⭐ Drag-and-drop mellom grupper (med animasjon + alfabetisk sortering) */
-function enableGroupDragAndDrop() {
-  const lists = [
-    { element: document.getElementById("gr1List"), level: "Gr1" },
-    { element: document.getElementById("gr2List"), level: "Gr2" },
-    { element: document.getElementById("gr3List"), level: "Gr3" },
-    { element: document.getElementById("keeperList"), level: "Keeper" }
+function createGroupListItem(name) {
+  const li = document.createElement('li');
+  li.textContent = name;
+  li.draggable = true;
+  li.dataset.name = name;
+
+  li.addEventListener('dragstart', event => {
+    li.classList.add('dragging');
+    event.dataTransfer.setData('text/plain', name);
+  });
+
+  li.addEventListener('dragend', () => {
+    li.classList.remove('dragging');
+  });
+
+  return li;
+}
+
+function renderGroupList(ul, names) {
+  ul.innerHTML = '';
+  names.forEach(name => {
+    ul.appendChild(createGroupListItem(name));
+  });
+}
+
+function updateGroups() {
+  const groups = buildGroupMap();
+
+  players.forEach(player => {
+    if (groups[player.level]) {
+      groups[player.level].push(player.name);
+    }
+  });
+
+  Object.keys(groups).forEach(key => groups[key].sort((a, b) => a.localeCompare(b, 'nb')));
+
+  renderGroupList(document.getElementById('gr1List'), groups.Gr1);
+  renderGroupList(document.getElementById('gr2List'), groups.Gr2);
+  renderGroupList(document.getElementById('gr3List'), groups.Gr3);
+  renderGroupList(document.getElementById('keeperList'), groups.Keeper);
+
+  window.generatedText =
+    `Gr1:\n${groups.Gr1.join('\n')}\n\n` +
+    `Gr2:\n${groups.Gr2.join('\n')}\n\n` +
+    `Gr3:\n${groups.Gr3.join('\n')}\n\n` +
+    `Keeper:\n${groups.Keeper.join('\n')}\n\n`;
+}
+
+function attachGroupDropHandlers() {
+  const groupLists = [
+    { element: document.getElementById('gr1List'), level: 'Gr1' },
+    { element: document.getElementById('gr2List'), level: 'Gr2' },
+    { element: document.getElementById('gr3List'), level: 'Gr3' },
+    { element: document.getElementById('keeperList'), level: 'Keeper' }
   ];
 
-  lists.forEach(listObj => {
-    const ul = listObj.element;
-
-    ul.addEventListener("dragover", e => {
-      e.preventDefault();
-      ul.classList.add("drag-target");
+  groupLists.forEach(({ element, level }) => {
+    element.addEventListener('dragover', event => {
+      event.preventDefault();
+      element.classList.add('drag-target');
     });
 
-    ul.addEventListener("dragleave", () => {
-      ul.classList.remove("drag-target");
+    element.addEventListener('dragleave', () => {
+      element.classList.remove('drag-target');
     });
 
-    ul.addEventListener("drop", e => {
-      e.preventDefault();
-      ul.classList.remove("drag-target");
+    element.addEventListener('drop', event => {
+      event.preventDefault();
+      element.classList.remove('drag-target');
 
-      const name = e.dataTransfer.getData("text/plain");
-      const player = players.find(p => p.name === name);
+      const name = event.dataTransfer.getData('text/plain');
+      const player = players.find(item => item.name === name);
 
       if (!player) return;
 
-      // Oppdater nivå
-      player.level = listObj.level;
-      player.select.value = listObj.level;
+      player.level = level;
+      if (player.select) {
+        player.select.value = level;
+      }
 
-      // Lagre i localStorage
-      saveGroup(name, listObj.level);
-
-      // ⭐ Oppdater grupper (alfabetisk sortering skjer her)
+      saveGroup(name, level);
       updateGroups();
 
-      // ⭐ Flash-animasjon på gruppen
-      ul.classList.add("group-flash");
-      setTimeout(() => ul.classList.remove("group-flash"), 400);
+      element.classList.add('group-flash');
+      setTimeout(() => element.classList.remove('group-flash'), 400);
 
-      // ⭐ Re-aktiver drag-and-drop etter sortering
-      enableGroupDragAndDrop();
-
-      // ⭐ Flyt-inn animasjon på spilleren
-      const li = [...ul.querySelectorAll("li")].find(x => x.textContent.trim() === name);
-      if (li) {
-        li.classList.add("player-drop-anim");
-        setTimeout(() => li.classList.remove("player-drop-anim"), 300);
+      const draggedItem = element.querySelector(`li[data-name="${CSS.escape(name)}"]`);
+      if (draggedItem) {
+        draggedItem.classList.add('player-drop-anim');
+        setTimeout(() => draggedItem.classList.remove('player-drop-anim'), 300);
       }
-    });
-  });
-
-  // Aktiver drag på alle li-elementer
-  document.querySelectorAll("#gr1List li, #gr2List li, #gr3List li, #keeperList li").forEach(li => {
-    li.draggable = true;
-
-    li.addEventListener("dragstart", e => {
-      li.classList.add("dragging");
-      e.dataTransfer.setData("text/plain", li.textContent.trim());
-    });
-
-    li.addEventListener("dragend", () => {
-      li.classList.remove("dragging");
     });
   });
 }
 
-/* ⭐ Import av Spond-filer */
-document.getElementById('importButton').addEventListener('click', () => {
-  const files = Array.from(document.getElementById('fileInput').files);
+function normalizeStatus(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function isAttendingStatus(value) {
+  const status = normalizeStatus(value);
+  return ['kommer', 'attending', 'coming', 'yes', 'ja', 'true'].includes(status);
+}
+
+function findSheet(workbook) {
+  const priorityNames = ['deltaker', 'medlemmer', 'players', 'participants', 'spond', 'sheet1'];
+
+  const exactMatch = workbook.SheetNames.find(name => {
+    const normalized = name.toLowerCase();
+    return priorityNames.some(keyword => normalized.includes(keyword));
+  });
+
+  return exactMatch || workbook.SheetNames[0];
+}
+
+function parsePlayersFromRows(rows) {
+  const headerIndex = rows.findIndex(row => {
+    if (!Array.isArray(row)) return false;
+    const values = row.map(cell => String(cell || '').trim().toLowerCase());
+    return values.includes('status') && values.includes('navn');
+  });
+
+  if (headerIndex === -1) {
+    throw new Error("Fant ikke kolonnene 'Status' og 'Navn' i filen.");
+  }
+
+  const headerRow = rows[headerIndex];
+  const statusCol = headerRow.findIndex(cell => String(cell || '').trim().toLowerCase() === 'status');
+  const nameCol = headerRow.findIndex(cell => String(cell || '').trim().toLowerCase() === 'navn');
+
+  if (statusCol === -1 || nameCol === -1) {
+    throw new Error("Excel-filen har ikke forventede kolonner.");
+  }
+
+  const parsedPlayers = [];
+  rows.slice(headerIndex + 1).forEach(row => {
+    if (!Array.isArray(row)) return;
+
+    const status = normalizeStatus(row[statusCol]);
+    const name = String(row[nameCol] || '').trim();
+
+    if (!name || !isAttendingStatus(status)) return;
+
+    if (parsedPlayers.some(player => player.name === name)) return;
+
+    parsedPlayers.push({ name });
+  });
+
+  return parsedPlayers;
+}
+
+function createPlayerRow(player) {
+  const li = document.createElement('li');
+  const select = document.createElement('select');
+
+  GROUP_LEVELS.forEach(level => {
+    const option = document.createElement('option');
+    option.value = level;
+    option.textContent = level;
+    select.appendChild(option);
+  });
+
+  select.value = getDefaultGroupForPlayer(player.name);
+
+  const nameSpan = document.createElement('span');
+  nameSpan.textContent = player.name;
+
+  select.addEventListener('change', () => {
+    const currentPlayer = players.find(item => item.name === player.name);
+    if (!currentPlayer) return;
+
+    currentPlayer.level = select.value;
+    saveGroup(player.name, select.value);
+    updateGroups();
+  });
+
+  li.appendChild(select);
+  li.appendChild(nameSpan);
+
+  player.select = select;
+  player.level = select.value;
+
+  return li;
+}
+
+function renderPlayersList() {
+  const playerList = document.getElementById('playerList');
+  if (!playerList) return;
+
+  playerList.innerHTML = '';
+  players.forEach(player => {
+    playerList.appendChild(createPlayerRow(player));
+  });
+}
+
+function resetPlayerGroups() {
+  players.forEach(player => {
+    player.level = 'Gr3';
+    if (player.select) {
+      player.select.value = 'Gr3';
+    }
+  });
+
+  clearSavedGroups();
+  updateGroups();
+  setStatus('Grupper ble nullstilt til standardinnstillinger.');
+}
+
+function importFiles() {
+  const fileInput = document.getElementById('fileInput');
+  const files = Array.from(fileInput.files || []);
 
   if (files.length === 0) {
-    console.warn("Ingen filer valgt");
+    setStatus('Velg minst én Excel-fil før du importerer.', true);
     return;
   }
 
   players = [];
-  const savedGroups = loadSavedGroups();
-
   const playerList = document.getElementById('playerList');
-  playerList.innerHTML = "";
+  if (playerList) playerList.innerHTML = '';
+
+  let importedCount = 0;
+  let hasError = false;
 
   files.forEach(file => {
     const reader = new FileReader();
 
-    reader.onload = function(e) {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
+    reader.onload = function (event) {
+      try {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[findSheet(workbook)];
 
-      const sheetName = workbook.SheetNames[1];
-      const sheet = workbook.Sheets[sheetName];
-      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-      /* ⭐ Finn header-raden */
-      const headerIndex = rows.findIndex(r =>
-        r.some(cell => (cell + "").trim().toLowerCase() === "status") &&
-        r.some(cell => (cell + "").trim().toLowerCase() === "navn")
-      );
-
-      if (headerIndex === -1) {
-        console.warn("Fant ikke kolonnene 'Status' og 'Navn' i filen.");
-        return;
-      }
-
-      const headerRow = rows[headerIndex];
-      const statusCol = headerRow.findIndex(c => (c + "").trim().toLowerCase() === "status");
-      const nameCol = headerRow.findIndex(c => (c + "").trim().toLowerCase() === "navn");
-
-      const tableRows = rows.slice(headerIndex + 1);
-
-      /* ⭐ Les hver rad i tabellen */
-      tableRows.forEach(row => {
-        const status = (row[statusCol] || "").toString().trim().toLowerCase();
-        const name = (row[nameCol] || "").toString().trim();
-
-        if (status === "kommer" && name !== "") {
-
-          // Unngå duplikater
-          if (players.some(p => p.name === name)) return;
-
-          const li = document.createElement("li");
-
-          const nameSpan = document.createElement("span");
-          nameSpan.textContent = name;
-
-          const select = document.createElement("select");
-          ["Gr1", "Gr2", "Gr3", "Keeper"].forEach(level => {
-            const option = document.createElement("option");
-            option.value = level;
-            option.textContent = level;
-            select.appendChild(option);
-          });
-
-          /* ⭐ Hvis spilleren har lagret gruppe → bruk den */
-          if (savedGroups[name]) {
-            select.value = savedGroups[name];
-          } else {
-            select.value = "Gr3"; // default
-          }
-
-          players.push({ name, level: select.value, select });
-
-          /* ⭐ Oppdater grupper når dropdown endres */
-          select.addEventListener("change", () => {
-            const p = players.find(x => x.name === name);
-            p.level = select.value;
-            saveGroup(name, select.value);
-            updateGroups();
-            enableGroupDragAndDrop();
-          });
-
-          /* ⭐ Riktig rekkefølge for PC/mobil */
-          li.appendChild(select);
-          li.appendChild(nameSpan);
-
-          playerList.appendChild(li);
+        if (!sheet) {
+          throw new Error('Fant ingen gyldig sheet i Excel-filen.');
         }
-      });
 
-      updateGroups();
-      enableGroupDragAndDrop();
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
+        const parsedPlayers = parsePlayersFromRows(rows);
+
+        parsedPlayers.forEach(player => {
+          if (players.some(existing => existing.name === player.name)) return;
+
+          players.push({
+            name: player.name,
+            level: getDefaultGroupForPlayer(player.name)
+          });
+        });
+
+        importedCount += parsedPlayers.length;
+
+        renderPlayersList();
+        updateGroups();
+      } catch (error) {
+        console.error(error);
+        hasError = true;
+        setStatus(error.message || 'Kunne ikke lese filen.', true);
+      }
+    };
+
+    reader.onerror = function () {
+      hasError = true;
+      setStatus('Kunne ikke lese valgt fil.', true);
     };
 
     reader.readAsArrayBuffer(file);
   });
-});
 
-/* ⭐ Kopier-knapp */
-document.getElementById("copyButton").addEventListener("click", () => {
+  setTimeout(() => {
+    if (!hasError && importedCount > 0) {
+      setStatus(`Importerte ${importedCount} spillere.`);
+    } else if (!hasError) {
+      setStatus('Fant ingen spillere med status «kommer» i valgt fil.', true);
+    }
+  }, 200);
+}
+
+function copyGeneratedText() {
   if (!window.generatedText) {
-    alert("Du må importere spillere først.");
+    setStatus('Du må importere spillere først.', true);
     return;
   }
 
   navigator.clipboard.writeText(window.generatedText)
-    .then(() => alert("Puljer kopiert!"))
-    .catch(() => alert("Kunne ikke kopiere."));
+    .then(() => setStatus('Puljer kopiert!'))
+    .catch(() => setStatus('Kunne ikke kopiere puljer.', true));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  attachGroupDropHandlers();
+
+  const importButton = document.getElementById('importButton');
+  const copyButton = document.getElementById('copyButton');
+  const resetButton = document.getElementById('resetButton');
+
+  if (importButton) {
+    importButton.addEventListener('click', importFiles);
+  }
+
+  if (copyButton) {
+    copyButton.addEventListener('click', copyGeneratedText);
+  }
+
+  if (resetButton) {
+    resetButton.addEventListener('click', resetPlayerGroups);
+  }
+
+  updateGroups();
 });
+
+window.addEventListener('load', () => {
+  updateGroups();
+});
+path":"script.js
