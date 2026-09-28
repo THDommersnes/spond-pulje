@@ -62,6 +62,7 @@ function createGroupListItem(name) {
 
   li.addEventListener('dragstart', event => {
     li.classList.add('dragging');
+    event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', name);
   });
 
@@ -74,9 +75,20 @@ function createGroupListItem(name) {
 
 function renderGroupList(ul, names) {
   ul.innerHTML = '';
+  if (names.length === 0) {
+    ul.innerHTML = '<li style="color: #a0b5a7; text-align: center; padding: 20px 0; cursor: default;" draggable="false">–</li>';
+    return;
+  }
   names.forEach(name => {
     ul.appendChild(createGroupListItem(name));
   });
+}
+
+function updateGroupCount(countId, count) {
+  const countEl = document.getElementById(countId);
+  if (countEl) {
+    countEl.textContent = count;
+  }
 }
 
 function updateGroups() {
@@ -95,11 +107,16 @@ function updateGroups() {
   renderGroupList(document.getElementById('gr3List'), groups.Gr3);
   renderGroupList(document.getElementById('keeperList'), groups.Keeper);
 
+  updateGroupCount('gr1Count', groups.Gr1.length);
+  updateGroupCount('gr2Count', groups.Gr2.length);
+  updateGroupCount('gr3Count', groups.Gr3.length);
+  updateGroupCount('keeperCount', groups.Keeper.length);
+
   window.generatedText =
-    `Gr1:\n${groups.Gr1.join('\n')}\n\n` +
-    `Gr2:\n${groups.Gr2.join('\n')}\n\n` +
-    `Gr3:\n${groups.Gr3.join('\n')}\n\n` +
-    `Keeper:\n${groups.Keeper.join('\n')}\n\n`;
+    `Gr1 (${groups.Gr1.length}):\n${groups.Gr1.join('\n')}\n\n` +
+    `Gr2 (${groups.Gr2.length}):\n${groups.Gr2.join('\n')}\n\n` +
+    `Gr3 (${groups.Gr3.length}):\n${groups.Gr3.join('\n')}\n\n` +
+    `Keeper (${groups.Keeper.length}):\n${groups.Keeper.join('\n')}\n\n`;
 }
 
 function attachGroupDropHandlers() {
@@ -113,6 +130,7 @@ function attachGroupDropHandlers() {
   groupLists.forEach(({ element, level }) => {
     element.addEventListener('dragover', event => {
       event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
       element.classList.add('drag-target');
     });
 
@@ -138,12 +156,12 @@ function attachGroupDropHandlers() {
       updateGroups();
 
       element.classList.add('group-flash');
-      setTimeout(() => element.classList.remove('group-flash'), 400);
+      setTimeout(() => element.classList.remove('group-flash'), 500);
 
       const draggedItem = element.querySelector(`li[data-name="${CSS.escape(name)}"]`);
       if (draggedItem) {
         draggedItem.classList.add('player-drop-anim');
-        setTimeout(() => draggedItem.classList.remove('player-drop-anim'), 300);
+        setTimeout(() => draggedItem.classList.remove('player-drop-anim'), 350);
       }
     });
   });
@@ -244,6 +262,10 @@ function renderPlayersList() {
   if (!playerList) return;
 
   playerList.innerHTML = '';
+  if (players.length === 0) {
+    playerList.innerHTML = '<li style="text-align: center; padding: 40px 20px; color: #a0b5a7; cursor: default;">Importer en Spond-fil for å komme i gang</li>';
+    return;
+  }
   players.forEach(player => {
     playerList.appendChild(createPlayerRow(player));
   });
@@ -259,7 +281,7 @@ function resetPlayerGroups() {
 
   clearSavedGroups();
   updateGroups();
-  setStatus('Grupper ble nullstilt til standardinnstillinger.');
+  setStatus('✅ Grupper ble nullstilt til standardinnstillinger.');
 }
 
 function importFiles() {
@@ -267,7 +289,7 @@ function importFiles() {
   const files = Array.from(fileInput.files || []);
 
   if (files.length === 0) {
-    setStatus('Velg minst én Excel-fil før du importerer.', true);
+    setStatus('⚠️ Velg minst én Excel-fil før du importerer.', true);
     return;
   }
 
@@ -310,13 +332,13 @@ function importFiles() {
       } catch (error) {
         console.error(error);
         hasError = true;
-        setStatus(error.message || 'Kunne ikke lese filen.', true);
+        setStatus('❌ ' + (error.message || 'Kunne ikke lese filen.'), true);
       }
     };
 
     reader.onerror = function () {
       hasError = true;
-      setStatus('Kunne ikke lese valgt fil.', true);
+      setStatus('❌ Kunne ikke lese valgt fil.', true);
     };
 
     reader.readAsArrayBuffer(file);
@@ -324,22 +346,22 @@ function importFiles() {
 
   setTimeout(() => {
     if (!hasError && importedCount > 0) {
-      setStatus(`Importerte ${importedCount} spillere.`);
+      setStatus(`✅ Importerte ${importedCount} spillere.`);
     } else if (!hasError) {
-      setStatus('Fant ingen spillere med status «kommer» i valgt fil.', true);
+      setStatus('⚠️ Fant ingen spillere med status «kommer» i valgt fil.', true);
     }
   }, 200);
 }
 
 function copyGeneratedText() {
   if (!window.generatedText) {
-    setStatus('Du må importere spillere først.', true);
+    setStatus('⚠️ Du må importere spillere først.', true);
     return;
   }
 
   navigator.clipboard.writeText(window.generatedText)
-    .then(() => setStatus('Puljer kopiert!'))
-    .catch(() => setStatus('Kunne ikke kopiere puljer.', true));
+    .then(() => setStatus('✅ Puljer kopiert til utklippstavlen!'))
+    .catch(() => setStatus('❌ Kunne ikke kopiere puljer.', true));
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -361,10 +383,10 @@ document.addEventListener('DOMContentLoaded', () => {
     resetButton.addEventListener('click', resetPlayerGroups);
   }
 
+  renderPlayersList();
   updateGroups();
 });
 
 window.addEventListener('load', () => {
   updateGroups();
 });
-path":"script.js
