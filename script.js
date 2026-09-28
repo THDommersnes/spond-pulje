@@ -36,13 +36,6 @@ function updateGroups() {
 
   Object.keys(groups).forEach(key => groups[key].sort((a, b) => a.localeCompare(b, 'nb')));
 
-  const groupIds = ['gr1List', 'gr2List', 'gr3List', 'keeperList'];
-  groupIds.forEach(id => {
-    const ul = document.getElementById(id);
-    if (!ul) return;
-    ul.innerHTML = '';
-  });
-
   document.getElementById('gr1List').innerHTML = groups.Gr1.map(name => `<li>${name}</li>`).join('');
   document.getElementById('gr2List').innerHTML = groups.Gr2.map(name => `<li>${name}</li>`).join('');
   document.getElementById('gr3List').innerHTML = groups.Gr3.map(name => `<li>${name}</li>`).join('');
@@ -110,9 +103,16 @@ function enableGroupDragAndDrop() {
   });
 }
 
-function getSavedGroupForName(name) {
-  const savedGroups = loadSavedGroups();
-  return GROUP_LEVELS.includes(savedGroups[name]) ? savedGroups[name] : 'Gr3';
+function normalizeHeader(value) {
+  return String(value ?? '')
+    .replace(/\u00a0/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function getSheetToRead(workbook) {
+  return workbook.Sheets[workbook.SheetNames[1]] || workbook.Sheets[workbook.SheetNames[0]];
 }
 
 function importFiles() {
@@ -138,18 +138,18 @@ function importFiles() {
       try {
         const data = new Uint8Array(event.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = getSheetToRead(workbook);
 
-        const sheet = workbook.Sheets[workbook.SheetNames[1]] || workbook.Sheets[workbook.SheetNames[0]];
         if (!sheet) {
           throw new Error('Fant ikke noe ark i Excel-filen.');
         }
 
         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
 
-        const headerIndex = rows.findIndex(r => {
-          if (!Array.isArray(r)) return false;
-          const values = r.map(cell => (cell || '').toString().trim().toLowerCase());
-          return values.includes('status') && values.includes('navn');
+        const headerIndex = rows.findIndex(row => {
+          if (!Array.isArray(row)) return false;
+          const values = row.map(cell => normalizeHeader(cell));
+          return values.some(value => value.includes('status')) && values.some(value => value.includes('navn'));
         });
 
         if (headerIndex === -1) {
@@ -157,8 +157,8 @@ function importFiles() {
         }
 
         const headerRow = rows[headerIndex];
-        const statusCol = headerRow.findIndex(cell => (cell || '').toString().trim().toLowerCase() === 'status');
-        const nameCol = headerRow.findIndex(cell => (cell || '').toString().trim().toLowerCase() === 'navn');
+        const statusCol = headerRow.findIndex(cell => normalizeHeader(cell).includes('status'));
+        const nameCol = headerRow.findIndex(cell => normalizeHeader(cell).includes('navn'));
 
         if (statusCol === -1 || nameCol === -1) {
           throw new Error("Fant ikke kolonnene 'Status' og 'Navn' i filen.");
@@ -166,10 +166,10 @@ function importFiles() {
 
         rows.slice(headerIndex + 1).forEach(row => {
           if (!Array.isArray(row)) return;
-          const status = (row[statusCol] || '').toString().trim().toLowerCase();
-          const name = (row[nameCol] || '').toString().trim();
+          const status = String(row[statusCol] || '').trim().toLowerCase();
+          const name = String(row[nameCol] || '').trim();
 
-          if (status === 'kommer' && name !== '') {
+          if ((status === 'kommer' || status === 'ja') && name !== '') {
             if (players.some(p => p.name === name)) return;
 
             const li = document.createElement('li');
@@ -215,7 +215,7 @@ function importFiles() {
           if (!hasError && importedCount > 0) {
             setStatus(`Importerte ${importedCount} spillere.`);
           } else if (!hasError && importedCount === 0) {
-            setStatus('Fant ingen spillere med status «kommer».', true);
+            setStatus('Fant ingen spillere med status «kommer» eller «ja».', true);
           }
         }
       }
@@ -248,10 +248,5 @@ window.addEventListener('load', () => {
   updateGroups();
   enableGroupDragAndDrop();
 });
-
-if (document.readyState !== 'loading') {
-  updateGroups();
-  enableGroupDragAndDrop();
-}
 
 console.log('XLSX er:', XLSX);
