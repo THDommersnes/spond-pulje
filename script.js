@@ -299,6 +299,7 @@ function importFiles() {
 
   let importedCount = 0;
   let hasError = false;
+  let filesProcessed = 0;
 
   files.forEach(file => {
     const reader = new FileReader();
@@ -307,7 +308,8 @@ function importFiles() {
       try {
         const data = new Uint8Array(event.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        const sheet = workbook.Sheets[findSheet(workbook)];
+        const sheetName = findSheet(workbook);
+        const sheet = workbook.Sheets[sheetName];
 
         if (!sheet) {
           throw new Error('Fant ingen gyldig sheet i Excel-filen.');
@@ -326,31 +328,36 @@ function importFiles() {
         });
 
         importedCount += parsedPlayers.length;
-
-        renderPlayersList();
-        updateGroups();
       } catch (error) {
         console.error(error);
         hasError = true;
         setStatus('❌ ' + (error.message || 'Kunne ikke lese filen.'), true);
+      } finally {
+        filesProcessed++;
+        
+        // Når alle filer er lest, oppdater visningen
+        if (filesProcessed === files.length) {
+          renderPlayersList();
+          updateGroups();
+          attachGroupDropHandlers();
+          
+          if (!hasError && importedCount > 0) {
+            setStatus(`✅ Importerte ${importedCount} spillere.`);
+          } else if (!hasError && importedCount === 0) {
+            setStatus('⚠️ Fant ingen spillere med status «kommer» i valgt fil.', true);
+          }
+        }
       }
     };
 
     reader.onerror = function () {
       hasError = true;
       setStatus('❌ Kunne ikke lese valgt fil.', true);
+      filesProcessed++;
     };
 
     reader.readAsArrayBuffer(file);
   });
-
-  setTimeout(() => {
-    if (!hasError && importedCount > 0) {
-      setStatus(`✅ Importerte ${importedCount} spillere.`);
-    } else if (!hasError) {
-      setStatus('⚠️ Fant ingen spillere med status «kommer» i valgt fil.', true);
-    }
-  }, 200);
 }
 
 function copyGeneratedText() {
