@@ -1,252 +1,226 @@
-const STORAGE_KEY = 'nest-sotra-savedGroups';
-const GROUP_LEVELS = ['Gr1', 'Gr2', 'Gr3', 'Keeper'];
+// rebuild – markerer at filen er oppdatert
+
+console.log("XLSX er:", XLSX);
+
 let players = [];
 
-function setStatus(message, isError = false) {
-  const statusEl = document.getElementById('statusMessage');
-  if (!statusEl) return;
-  statusEl.textContent = message || '';
-  statusEl.classList.toggle('visible', Boolean(message));
-  statusEl.classList.toggle('error', isError);
+/* ⭐ Lagring av grupper i localStorage */
+function saveGroup(name, level) {
+  const saved = JSON.parse(localStorage.getItem("savedGroups") || "{}");
+  saved[name] = level;
+  localStorage.setItem("savedGroups", JSON.stringify(saved));
 }
 
 function loadSavedGroups() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-  } catch (error) {
-    console.warn('Kunne ikke lese lagret grupper:', error);
-    return {};
-  }
+  return JSON.parse(localStorage.getItem("savedGroups") || "{}");
 }
 
-function saveGroup(name, level) {
-  const saved = loadSavedGroups();
-  saved[name] = level;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
-}
-
+/* ⭐ Oppdaterer alle grupper basert på players[] */
 function updateGroups() {
-  const groups = { Gr1: [], Gr2: [], Gr3: [], Keeper: [] };
+  const groups = {
+    Gr1: [],
+    Gr2: [],
+    Gr3: [],
+    Keeper: []
+  };
 
-  players.forEach(player => {
-    if (groups[player.level]) {
-      groups[player.level].push(player.name);
-    }
+  players.forEach(p => {
+    if (groups[p.level]) groups[p.level].push(p.name);
   });
 
-  Object.keys(groups).forEach(key => groups[key].sort((a, b) => a.localeCompare(b, 'nb')));
+  Object.keys(groups).forEach(key => groups[key].sort());
 
-  document.getElementById('gr1List').innerHTML = groups.Gr1.map(name => `<li>${name}</li>`).join('');
-  document.getElementById('gr2List').innerHTML = groups.Gr2.map(name => `<li>${name}</li>`).join('');
-  document.getElementById('gr3List').innerHTML = groups.Gr3.map(name => `<li>${name}</li>`).join('');
-  document.getElementById('keeperList').innerHTML = groups.Keeper.map(name => `<li>${name}</li>`).join('');
+  document.getElementById("gr1List").innerHTML = groups.Gr1.map(n => `<li>${n}</li>`).join("");
+  document.getElementById("gr2List").innerHTML = groups.Gr2.map(n => `<li>${n}</li>`).join("");
+  document.getElementById("gr3List").innerHTML = groups.Gr3.map(n => `<li>${n}</li>`).join("");
+  document.getElementById("keeperList").innerHTML = groups.Keeper.map(n => `<li>${n}</li>`).join("");
 
   window.generatedText =
-    `Gr1:\n${groups.Gr1.join('\n')}\n\n` +
-    `Gr2:\n${groups.Gr2.join('\n')}\n\n` +
-    `Gr3:\n${groups.Gr3.join('\n')}\n\n` +
-    `Keeper:\n${groups.Keeper.join('\n')}\n\n`;
+    `Gr1:\n${groups.Gr1.join("\n")}\n\n` +
+    `Gr2:\n${groups.Gr2.join("\n")}\n\n` +
+    `Gr3:\n${groups.Gr3.join("\n")}\n\n` +
+    `Keeper:\n${groups.Keeper.join("\n")}\n\n`;
 }
 
+/* ⭐ Drag-and-drop mellom grupper (med animasjon + alfabetisk sortering) */
 function enableGroupDragAndDrop() {
   const lists = [
-    { element: document.getElementById('gr1List'), level: 'Gr1' },
-    { element: document.getElementById('gr2List'), level: 'Gr2' },
-    { element: document.getElementById('gr3List'), level: 'Gr3' },
-    { element: document.getElementById('keeperList'), level: 'Keeper' }
+    { element: document.getElementById("gr1List"), level: "Gr1" },
+    { element: document.getElementById("gr2List"), level: "Gr2" },
+    { element: document.getElementById("gr3List"), level: "Gr3" },
+    { element: document.getElementById("keeperList"), level: "Keeper" }
   ];
 
-  lists.forEach(({ element, level }) => {
-    if (!element) return;
+  lists.forEach(listObj => {
+    const ul = listObj.element;
 
-    element.onDragOver = e => {
+    ul.addEventListener("dragover", e => {
       e.preventDefault();
-      element.classList.add('drag-target');
-    };
+      ul.classList.add("drag-target");
+    });
 
-    element.onDragLeave = () => {
-      element.classList.remove('drag-target');
-    };
+    ul.addEventListener("dragleave", () => {
+      ul.classList.remove("drag-target");
+    });
 
-    element.onDrop = e => {
+    ul.addEventListener("drop", e => {
       e.preventDefault();
-      element.classList.remove('drag-target');
-      const name = e.dataTransfer.getData('text/plain');
+      ul.classList.remove("drag-target");
+
+      const name = e.dataTransfer.getData("text/plain");
       const player = players.find(p => p.name === name);
+
       if (!player) return;
 
-      player.level = level;
-      if (player.select) player.select.value = level;
-      saveGroup(name, level);
+      // Oppdater nivå
+      player.level = listObj.level;
+      player.select.value = listObj.level;
+
+      // Lagre i localStorage
+      saveGroup(name, listObj.level);
+
+      // ⭐ Oppdater grupper (alfabetisk sortering skjer her)
       updateGroups();
 
-      element.classList.add('group-flash');
-      setTimeout(() => element.classList.remove('group-flash'), 400);
+      // ⭐ Flash-animasjon på gruppen
+      ul.classList.add("group-flash");
+      setTimeout(() => ul.classList.remove("group-flash"), 400);
 
-      const li = [...element.querySelectorAll('li')].find(x => x.textContent.trim() === name);
+      // ⭐ Re-aktiver drag-and-drop etter sortering
+      enableGroupDragAndDrop();
+
+      // ⭐ Flyt-inn animasjon på spilleren
+      const li = [...ul.querySelectorAll("li")].find(x => x.textContent.trim() === name);
       if (li) {
-        li.classList.add('player-drop-anim');
-        setTimeout(() => li.classList.remove('player-drop-anim'), 300);
+        li.classList.add("player-drop-anim");
+        setTimeout(() => li.classList.remove("player-drop-anim"), 300);
       }
-    };
+    });
   });
 
-  document.querySelectorAll('#gr1List li, #gr2List li, #gr3List li, #keeperList li').forEach(li => {
+  // Aktiver drag på alle li-elementer
+  document.querySelectorAll("#gr1List li, #gr2List li, #gr3List li, #keeperList li").forEach(li => {
     li.draggable = true;
-    li.addEventListener('dragstart', e => {
-      li.classList.add('dragging');
-      e.dataTransfer.setData('text/plain', li.textContent.trim());
+
+    li.addEventListener("dragstart", e => {
+      li.classList.add("dragging");
+      e.dataTransfer.setData("text/plain", li.textContent.trim());
     });
-    li.addEventListener('dragend', () => {
-      li.classList.remove('dragging');
+
+    li.addEventListener("dragend", () => {
+      li.classList.remove("dragging");
     });
   });
 }
 
-function normalizeHeader(value) {
-  return String(value ?? '')
-    .replace(/\u00a0/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
-}
+/* ⭐ Import av Spond-filer */
+document.getElementById('importButton').addEventListener('click', () => {
+  const files = Array.from(document.getElementById('fileInput').files);
 
-function getSheetToRead(workbook) {
-  return workbook.Sheets[workbook.SheetNames[1]] || workbook.Sheets[workbook.SheetNames[0]];
-}
-
-function importFiles() {
-  const files = Array.from(document.getElementById('fileInput').files || []);
   if (files.length === 0) {
-    setStatus('Velg minst én Excel-fil.', true);
+    console.warn("Ingen filer valgt");
     return;
   }
 
   players = [];
   const savedGroups = loadSavedGroups();
-  const playerList = document.getElementById('playerList');
-  if (playerList) playerList.innerHTML = '';
 
-  let processedFiles = 0;
-  let importedCount = 0;
-  let hasError = false;
+  const playerList = document.getElementById('playerList');
+  playerList.innerHTML = "";
 
   files.forEach(file => {
     const reader = new FileReader();
 
-    reader.onload = function (event) {
-      try {
-        const data = new Uint8Array(event.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheet = getSheetToRead(workbook);
+    reader.onload = function(e) {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
 
-        if (!sheet) {
-          throw new Error('Fant ikke noe ark i Excel-filen.');
-        }
+      const sheetName = workbook.SheetNames[1];
+      const sheet = workbook.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
+      /* ⭐ Finn header-raden */
+      const headerIndex = rows.findIndex(r =>
+        r.some(cell => (cell + "").trim().toLowerCase() === "status") &&
+        r.some(cell => (cell + "").trim().toLowerCase() === "navn")
+      );
 
-        const headerIndex = rows.findIndex(row => {
-          if (!Array.isArray(row)) return false;
-          const values = row.map(cell => normalizeHeader(cell));
-          return values.some(value => value.includes('status')) && values.some(value => value.includes('navn'));
-        });
-
-        if (headerIndex === -1) {
-          throw new Error("Fant ikke kolonnene 'Status' og 'Navn' i filen.");
-        }
-
-        const headerRow = rows[headerIndex];
-        const statusCol = headerRow.findIndex(cell => normalizeHeader(cell).includes('status'));
-        const nameCol = headerRow.findIndex(cell => normalizeHeader(cell).includes('navn'));
-
-        if (statusCol === -1 || nameCol === -1) {
-          throw new Error("Fant ikke kolonnene 'Status' og 'Navn' i filen.");
-        }
-
-        rows.slice(headerIndex + 1).forEach(row => {
-          if (!Array.isArray(row)) return;
-          const status = String(row[statusCol] || '').trim().toLowerCase();
-          const name = String(row[nameCol] || '').trim();
-
-          if ((status === 'kommer' || status === 'ja') && name !== '') {
-            if (players.some(p => p.name === name)) return;
-
-            const li = document.createElement('li');
-            const nameSpan = document.createElement('span');
-            nameSpan.textContent = name;
-
-            const select = document.createElement('select');
-            GROUP_LEVELS.forEach(level => {
-              const option = document.createElement('option');
-              option.value = level;
-              option.textContent = level;
-              select.appendChild(option);
-            });
-
-            select.value = savedGroups[name] && GROUP_LEVELS.includes(savedGroups[name]) ? savedGroups[name] : 'Gr3';
-
-            select.addEventListener('change', () => {
-              const p = players.find(x => x.name === name);
-              if (!p) return;
-              p.level = select.value;
-              saveGroup(name, select.value);
-              updateGroups();
-              enableGroupDragAndDrop();
-            });
-
-            players.push({ name, level: select.value, select });
-            li.appendChild(select);
-            li.appendChild(nameSpan);
-            playerList.appendChild(li);
-            importedCount += 1;
-          }
-        });
-      } catch (error) {
-        console.error(error);
-        hasError = true;
-        setStatus(error.message || 'Kunne ikke lese filen.', true);
-      } finally {
-        processedFiles += 1;
-        if (processedFiles === files.length) {
-          updateGroups();
-          enableGroupDragAndDrop();
-
-          if (!hasError && importedCount > 0) {
-            setStatus(`Importerte ${importedCount} spillere.`);
-          } else if (!hasError && importedCount === 0) {
-            setStatus('Fant ingen spillere med status «kommer» eller «ja».', true);
-          }
-        }
+      if (headerIndex === -1) {
+        console.warn("Fant ikke kolonnene 'Status' og 'Navn' i filen.");
+        return;
       }
-    };
 
-    reader.onerror = () => {
-      hasError = true;
-      processedFiles += 1;
-      setStatus('Kunne ikke lese valgt fil.', true);
+      const headerRow = rows[headerIndex];
+      const statusCol = headerRow.findIndex(c => (c + "").trim().toLowerCase() === "status");
+      const nameCol = headerRow.findIndex(c => (c + "").trim().toLowerCase() === "navn");
+
+      const tableRows = rows.slice(headerIndex + 1);
+
+      /* ⭐ Les hver rad i tabellen */
+      tableRows.forEach(row => {
+        const status = (row[statusCol] || "").toString().trim().toLowerCase();
+        const name = (row[nameCol] || "").toString().trim();
+
+        if (status === "kommer" && name !== "") {
+
+          // Unngå duplikater
+          if (players.some(p => p.name === name)) return;
+
+          const li = document.createElement("li");
+
+          const nameSpan = document.createElement("span");
+          nameSpan.textContent = name;
+
+          const select = document.createElement("select");
+          ["Gr1", "Gr2", "Gr3", "Keeper"].forEach(level => {
+            const option = document.createElement("option");
+            option.value = level;
+            option.textContent = level;
+            select.appendChild(option);
+          });
+
+          /* ⭐ Hvis spilleren har lagret gruppe → bruk den */
+          if (savedGroups[name]) {
+            select.value = savedGroups[name];
+          } else {
+            select.value = "Gr3"; // default
+          }
+
+          players.push({ name, level: select.value, select });
+
+          /* ⭐ Oppdater grupper når dropdown endres */
+          select.addEventListener("change", () => {
+            const p = players.find(x => x.name === name);
+            p.level = select.value;
+            saveGroup(name, select.value);
+            updateGroups();
+            enableGroupDragAndDrop();
+          });
+
+          /* ⭐ Riktig rekkefølge for PC/mobil */
+          li.appendChild(select);
+          li.appendChild(nameSpan);
+
+          playerList.appendChild(li);
+        }
+      });
+
+      updateGroups();
+      enableGroupDragAndDrop();
     };
 
     reader.readAsArrayBuffer(file);
   });
-}
+});
 
-document.getElementById('importButton').addEventListener('click', importFiles);
-
-document.getElementById('copyButton').addEventListener('click', () => {
+/* ⭐ Kopier-knapp */
+document.getElementById("copyButton").addEventListener("click", () => {
   if (!window.generatedText) {
-    setStatus('Du må importere spillere først.', true);
+    alert("Du må importere spillere først.");
     return;
   }
 
   navigator.clipboard.writeText(window.generatedText)
-    .then(() => setStatus('Puljer kopiert!'))
-    .catch(() => setStatus('Kunne ikke kopiere.', true));
+    .then(() => alert("Puljer kopiert!"))
+    .catch(() => alert("Kunne ikke kopiere."));
 });
-
-window.addEventListener('load', () => {
-  updateGroups();
-  enableGroupDragAndDrop();
-});
-
-console.log('XLSX er:', XLSX);
